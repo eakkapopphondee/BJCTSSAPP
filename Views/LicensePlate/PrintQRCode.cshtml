@@ -1,0 +1,34 @@
+@model thaibev.Models.LicensePlatePrintViewModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>พิมพ์ QR Code</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; color: #000; background: #fff; margin: 24px; }
+        .tools { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; }
+        .ticket { border: 1px dotted #000; width: 146mm; max-width: 100%; box-sizing: border-box; padding: 7mm 12mm; }
+        .code { font-weight: bold; margin: 0; }
+        .qr { display: block; width: 38mm; height: 38mm; margin: 2mm auto; image-rendering: pixelated; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; white-space: nowrap; padding-right: 12px; }
+        td { padding: 3px 8px; overflow-wrap: anywhere; }
+        .date { margin: 7mm 0 0; font: 12px monospace; }
+        @@media print { @@page { margin: 10mm; } body { margin: 0; } .tools { display: none; } .ticket { break-inside: avoid; } }
+    </style>
+</head>
+<body>
+    <main class="ticket">
+        <p class="code">Code : <span data-localize="false">@Model.Plate.QRCode</span></p>
+        <img class="qr" src="@Model.ImageDataUrl" alt="QR Code" />
+        <table><tbody>
+            <tr><th>ทะเบียนรถ</th><td data-localize="false">@Model.Plate.PlateNumber</td><td data-localize="false">@Model.Plate.PlateProvinceName</td></tr>
+            <tr><th>ทะเบียนพ่วง</th><td data-localize="false">@Model.Plate.TrailerNumber</td><td data-localize="false">@Model.Plate.TrailerProvinceName</td></tr>
+        </tbody></table>
+        <p class="date" data-localize="false">Print Date : @Model.PrintDate.ToString("dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)</p>
+    </main>
+    <script src="~/js/localization.js" asp-append-version="true" data-mapping-url="@Url.Content("~/localization/th-en.json")"></script>
+</body>
+</html>

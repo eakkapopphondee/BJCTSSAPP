@@ -1,0 +1,8 @@
+@model thaibev.Models.NotificationViewModel
+@{ ViewData["Title"] = "แก้ไขการแจ้งเตือนของระบบ"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">แก้ไขการแจ้งเตือนของระบบ <span class="factory-total">ID @Model.Id</span></h1><a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการการแจ้งเตือนของระบบ</a>
+</div>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_FormScripts" /> }
+

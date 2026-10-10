@@ -1,0 +1,7 @@
+@inject thaibev.Models.PaginationOptions Pagination
+<select id="pageSize" class="form-select">
+    @foreach (var size in Pagination.PageSizes)
+    {
+        <option value="@size" selected="@(size == Pagination.DefaultPageSize)">@size</option>
+    }
+</select>

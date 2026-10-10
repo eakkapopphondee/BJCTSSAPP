@@ -1,0 +1,63 @@
+@model thaibev.Models.FactoryViewModel
+
+<form id="factoryForm" class="card shadow-sm" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+    {
+        <input type="hidden" name="Id" value="@Model.Id" />
+    }
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label" for="LogoPathFile">ภาพโลโก้ (.jpg, .jpeg, .png, .webp — กว้างไม่เกิน 250 px × สูงไม่เกิน 250 px, ไฟล์ไม่เกิน 5 MB)</label>
+                <div class="mb-2"><img id="logoPreview" src="@Url.Content(string.IsNullOrWhiteSpace(Model.LogoPath) ? "~/images/factory-default.svg" : "~/" + Model.LogoPath.TrimStart('/'))" alt="LogoPath ของโรงงาน" style="max-width:250px;max-height:250px;object-fit:contain" /></div>
+                <input class="form-control" id="LogoPathFile" name="LogoPathFile" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                <div class="form-text">หากไม่เลือกไฟล์ใหม่ ระบบจะเก็บ ภาพโลโก้ เดิมไว้</div>
+            </div>
+            <div class="col-12 col-md-6"><label class="form-label" for="FactoryCode">รหัสบริษัท/โรงงาน <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="FactoryCode" name="FactoryCode" value="@Model.FactoryCode" maxlength="20" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="FactoryDesc">ชื่อบริษัท/โรงงาน <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="FactoryDesc" name="FactoryDesc" value="@Model.FactoryDesc" maxlength="250" required /></div>
+            <div class="col-12"><label class="form-label" for="Address1">รายละเอียดที่อยู่ 1 <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="Address1" name="Address1" value="@Model.Address1" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="Address2">รายละเอียดที่อยู่ 2</label><input class="form-control" id="Address2" name="Address2" value="@Model.Address2" maxlength="200" /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="Address3">รายละเอียดที่อยู่ 3</label><input class="form-control" id="Address3" name="Address3" value="@Model.Address3" maxlength="200" /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="BranchCode">รหัสสาขา <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="BranchCode" name="BranchCode" value="@Model.BranchCode" maxlength="10" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="BranchDesc">ชื่อสาขา <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="BranchDesc" name="BranchDesc" value="@Model.BranchDesc" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="PhoneNumber">เบอร์โทรศัพท์ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="SAPCode">รหัสสาขาใน SAP <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="SAPCode" name="SAPCode" value="@Model.SAPCode" maxlength="50" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="SAPDesc">รายละเอียดสาขาใน SAP <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="SAPDesc" name="SAPDesc" value="@Model.SAPDesc" maxlength="250" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" asp-for="ProgramTypeID">ประเภทโปรแกรม <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="ProgramTypeID" asp-items="Model.ProgramTypes" class="form-select" required><option value="">เลือกประเภทโปรแกรม</option></select></div>
+            <div class="col-12 col-md-4 d-flex align-items-center"><div class="form-check"><input class="form-check-input" id="PrintFlag" type="checkbox" checked="@(Model.PrintFlag == "Y")" /><label class="form-check-label" for="PrintFlag">พิมพ์สำเนาบัตรชั่ง</label></div></div>
+            <div class="col-12 col-md-4"><label class="form-label" for="PrintCopy">จน.สำเนาบัตรชั่ง <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input class="form-control" id="PrintCopy" name="PrintCopy" type="number" value="@(ViewContext.RouteData.Values["action"]?.ToString() == "Edit" ? Model.PrintCopy.ToString() : null)" required /></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-4"><label class="form-label" for="DataStatus">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label>
+                    <select class="form-select" id="DataStatus" name="DataStatus" required><option value="A" selected="@(Model.DataStatus == "A")">ใช้งานอยู่</option><option value="C" selected="@(Model.DataStatus == "C")">ยกเลิก</option>
+                        @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus" selected>@Model.DataStatus</option> }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" name="DataStatus" value="A" />
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-secondary" href="@Url.Action("Index", "Factory")">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">@(ViewContext.RouteData.Values["action"]?.ToString() == "Edit" ? "บันทึกข้อมูลโรงงานเรียบร้อยแล้ว." : "บันทึกข้อมูลโรงงานเรียบร้อยแล้ว")</div>
+            <div class="modal-footer"><a class="btn btn-success" href="@Url.Action("Index", "Factory")">ตกลง</a></div>
+        </div>
+    </div>
+</div>
+
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+
+

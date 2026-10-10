@@ -1,0 +1,70 @@
+<script>
+        (() => {
+
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            const input = document.getElementById('LogoPathFile');
+            const preview = document.getElementById('logoPreview');
+            const initialLogo = preview.src;
+            let checkingLogo = false, selection = 0;
+            preview.addEventListener('error', () => { preview.src = '@Url.Content("~/images/factory-default.svg")'; }, { once: true });
+            input.addEventListener('change', async () => {
+                const version = ++selection;
+                const file = input.files[0];
+                input.setCustomValidity('');
+                preview.src = initialLogo;
+                if (!file) { checkingLogo = false; return; }
+                checkingLogo = true;
+                let url;
+                try {
+                    if (!/\.(jpe?g|png|webp)$/i.test(file.name) || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
+                        throw new Error('รองรับเฉพาะไฟล์ .jpg, .jpeg, .png และ .webp');
+                    if (file.size === 0 || file.size > 5 * 1024 * 1024)
+                        throw new Error('กรุณาเลือกไฟล์ภาพที่ไม่ว่างและมีขนาดไม่เกิน 5 MB');
+                    url = URL.createObjectURL(file);
+                    const image = new Image();
+                    image.src = url;
+                    await image.decode();
+                    if (version !== selection) return;
+                    if (image.naturalWidth > 250 || image.naturalHeight > 250)
+                        throw new Error('LogoPath ต้องมีความกว้างไม่เกิน 250 px และความสูงไม่เกิน 250 px');
+                    preview.src = url;
+                    await preview.decode();
+                } catch (error) {
+                    if (version !== selection) return;
+                    input.setCustomValidity(error.message || 'ไฟล์รูปภาพไม่ถูกต้อง');
+                    input.reportValidity();
+                } finally {
+                    if (url) URL.revokeObjectURL(url);
+                    if (version === selection) checkingLogo = false;
+                }
+            });
+
+            function showError(xhr) {
+                const errors = Object.values(xhr.responseJSON?.errors || {}).flat().join(' ');
+                const message = xhr.responseJSON?.Message || errors || xhr.responseJSON?.detail || xhr.responseJSON?.title || 'Unable to save data.';
+                $('#errorMessage').removeClass('d-none').text(message);
+            }
+
+            $('#factoryForm').on('submit', function (event) {
+                event.preventDefault();
+                if (checkingLogo || !this.reportValidity()) return;
+                $('#errorMessage').addClass('d-none');
+                const button = $('#btnSave').prop('disabled', true);
+
+                const formData = new FormData(this);
+                formData.set('PrintFlag', document.getElementById('PrintFlag').checked ? 'Y' : 'N');
+                $.ajax({
+                    url: '@Url.Content("~/v1/Setup/Factory/Save")',
+                    method: 'POST',
+                    contentType: false,
+                    processData: false,
+                    headers: { 'RequestVerificationToken': token },
+                    data: formData
+                })
+                    .done(() => successModal.show())
+                    .fail(showError)
+                    .always(() => button.prop('disabled', false));
+            });
+        })();
+    </script>

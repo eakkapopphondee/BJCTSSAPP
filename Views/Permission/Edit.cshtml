@@ -1,0 +1,107 @@
+@model thaibev.Models.RoleViewModel
+@{ ViewData["Title"] = "กำหนดสิทธิ์"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">กำหนดสิทธิ์ <span class="factory-total">@Model.RoleCode / @Model.RoleDescription</span></h1>
+    <a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการ</a>
+</div>
+<form id="permissionForm">
+    @Html.AntiForgeryToken()
+    <div id="errorMessage" class="alert alert-danger d-none" role="alert"></div>
+    <div class="card">
+        <div class="search-toolbar">
+            <label><input id="selectAll" type="checkbox" class="form-check-input me-2" disabled />เลือกทั้งหมด / ไม่เลือกทั้งหมด</label>
+        </div>
+        <div class="table-responsive">
+            <table id="permissionTable" class="table table-hover factory-table mb-0" aria-label="กำหนดสิทธิ์เมนู">
+                <thead><tr><th scope="col">ลำดับ</th><th scope="col">ชื่อเมนู</th><th scope="col">เข้าใช้</th><th scope="col">นำข้อมูลออก</th></tr></thead>
+                <tbody id="permissionRows"><tr><td colspan="4" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button id="btnRetry" type="button" class="btn btn-outline-primary d-none">ลองใหม่</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">ยกเลิก</a>
+            <button id="btnSave" type="submit" class="btn btn-primary" disabled>บันทึก</button>
+        </div>
+    </div>
+</form>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2></div>
+        <div class="modal-body">บันทึกข้อมูลเรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-action="Index">กลับไปรายการ</a></div>
+    </div></div>
+</div>
+@section Scripts {
+<script src="~/js/setup-api.js" asp-append-version="true"></script>
+<script>
+(() => {
+    let rows = [], busy = false, saved = false;
+    const isSubject = row => String(row.subjectFlag ?? '').trim().toUpperCase() === 'Y';
+    const editableRows = () => rows.filter(row => !isSubject(row));
+    const display = value => $('<div>').text(value ?? '').html();
+    const success = new bootstrap.Modal(document.getElementById('successModal'));
+    function sync() {
+        $('#permissionRows tr[data-index]').each(function () {
+            const row = rows[Number(this.dataset.index)];
+            $(this).find('.access').prop('checked', row.accessFlag === 'Y').prop('disabled', busy || saved);
+            $(this).find('.export').prop('checked', row.exportFlag === 'Y').prop('disabled', busy || saved || row.accessFlag !== 'Y');
+        });
+        const editable = editableRows();
+        const count = editable.reduce((n, row) => n + (row.accessFlag === 'Y' ? 1 : 0) + (row.exportFlag === 'Y' ? 1 : 0), 0);
+        $('#selectAll').prop('checked', editable.length > 0 && count === editable.length * 2)
+            .prop('indeterminate', count > 0 && count < editable.length * 2).prop('disabled', busy || saved || !editable.length);
+        $('#btnSave').prop('disabled', busy || saved || !editable.length);
+    }
+    function load() {
+        busy = true; sync();
+        $('#errorMessage, #btnRetry').addClass('d-none');
+        $.getJSON('@Url.Content("~/v1/Auth/Permission/List")', { RoleID: @Model.Id })
+            .done(response => {
+                rows = SetupApi.rows(response);
+                let group = 0, child = 0;
+                $('#permissionRows').html(rows.map((row, index) => {
+                    const subject = isSubject(row);
+                    if (subject) {
+                        group += 1;
+                        child = 0;
+                    }
+                    else { if (!group) group = 1; child++; }
+                    const number = subject ? `${group}` : `${group}.${child}`;
+                    return `<tr data-index="${index}" class="${subject ? 'fw-bold' : ''}">
+                        <td class="${subject ? '' : 'ps-4'}">${number}</td>
+                        <td class="${subject ? '' : 'ps-4'}">${display(row.menuName)}</td>
+                        <td>${subject ? '' : `<input type="checkbox" class="form-check-input access" aria-label="เข้าใช้ ลำดับ ${number}" />`}</td>
+                        <td>${subject ? '' : `<input type="checkbox" class="form-check-input export" aria-label="นำข้อมูลออก ลำดับ ${number}" />`}</td></tr>`;
+                }).join('') || '<tr><td colspan="4" class="text-center py-4">ไม่พบเมนู</td></tr>');
+            }).fail(() => {
+                $('#permissionRows').empty();
+                $('#errorMessage').removeClass('d-none').text('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่');
+                $('#btnRetry').removeClass('d-none');
+            }).always(() => { busy = false; sync(); });
+    }
+    $('#btnRetry').on('click', load);
+    $('#permissionRows').on('change', 'input', function () {
+        const row = rows[Number($(this).closest('tr').data('index'))];
+        row[this.classList.contains('access') ? 'accessFlag' : 'exportFlag'] = this.checked ? 'Y' : 'N';
+        if (row.accessFlag !== 'Y') row.exportFlag = 'N';
+        sync();
+    });
+    $('#selectAll').on('change', function () {
+        editableRows().forEach(row => { row.accessFlag = row.exportFlag = this.checked ? 'Y' : 'N'; });
+        sync();
+    });
+    $('#permissionForm').on('submit', function (event) {
+        event.preventDefault();
+        if (busy || saved || !editableRows().length) return;
+        busy = true; sync(); $('#errorMessage').addClass('d-none');
+        $.ajax({ url: '@Url.Content("~/v1/Auth/Permission/Save")', method: 'POST', contentType: 'application/json',
+            headers: { RequestVerificationToken: $(this).find('input[name="__RequestVerificationToken"]').val() },
+            data: JSON.stringify({ RoleID: @Model.Id, Permissions: editableRows().map(row => ({ MenuID: row.menuID, AccessFlag: row.accessFlag, ExportFlag: row.exportFlag })) })
+        }).done(() => { saved = true; success.show(); })
+            .fail(xhr => $('#errorMessage').removeClass('d-none').text(xhr.responseJSON?.Message || 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่'))
+            .always(() => { busy = false; sync(); });
+    });
+    load();
+})();
+</script>
+}

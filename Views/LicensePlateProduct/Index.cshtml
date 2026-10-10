@@ -1,0 +1,100 @@
+@model thaibev.Models.LicensePlateProductViewModel
+@{ ViewData["Title"] = "เพิ่มรายการสินค้า"; }
+<div class="page-heading"><h1>เพิ่มรายการสินค้า</h1></div>
+@if (TempData["ProductMessage"] is string message)
+{
+    <div class="alert alert-success" role="status">@message</div>
+}
+<div class="card mb-3"><div class="card-body">
+    <dl class="row mb-0">
+        <dt class="col-sm-4">ทะเบียนรถ</dt><dd class="col-sm-8" data-localize="false">@Model.PlateNumber</dd>
+        <dt class="col-sm-4">จังหวัดทะเบียนรถ</dt><dd class="col-sm-8" data-localize="false">@(Model.PlateProvinceName ?? "—")</dd>
+        <dt class="col-sm-4">ทะเบียนพ่วง</dt><dd class="col-sm-8" data-localize="false">@Model.TrailerNumber</dd>
+        <dt class="col-sm-4">จังหวัดทะเบียนพ่วง</dt><dd class="col-sm-8" data-localize="false">@(Model.TrailerProvinceName ?? "—")</dd>
+        <dt class="col-sm-4">บริษัทขนส่ง</dt><dd class="col-sm-8" data-localize="false">@(Model.TransportCompanyName ?? "—")</dd>
+    </dl>
+</div></div>
+<form id="productForm" method="post" class="card">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="recordId" value="0" />
+    <div id="productMessage" class="alert d-none" role="alert"></div>
+    <input asp-for="LicensePlateID" type="hidden" />
+    <div class="card-body">
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+        <div class="row g-3">
+            <div class="col-md-6"><label asp-for="ProductID" class="form-label">สินค้า <span class="text-danger">*</span></label><select asp-for="ProductID" asp-items="Model.Products" class="form-select" required><option value="">เลือกสินค้า</option></select></div>
+            <div class="col-md-3"><label asp-for="EffDateFrom" class="form-label">วันที่เริ่มใช้ <span class="text-danger">*</span></label><input asp-for="EffDateFrom" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" min="1753-01-01" max="9999-12-31" required /></div>
+            <div class="col-md-3"><label asp-for="EffDateTo" class="form-label">วันที่สิ้นสุด <span class="text-danger">*</span></label><input asp-for="EffDateTo" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" min="1753-01-01" max="9999-12-31" required /></div>
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2"><a asp-controller="LicensePlate" asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a><button type="submit" class="btn btn-primary">บันทึก</button></div>
+</form>
+<div class="card mb-3"><div class="card-body">
+    <h2 class="h5">รายการสินค้าของทะเบียนรถ</h2>
+    <div class="d-flex gap-2 mb-3"><input id="productSearch" class="form-control" placeholder="ค้นหา" aria-label="ค้นหา" /><select id="productStatus" class="form-select" aria-label="สถานะ"><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option><option value="L">ทั้งหมด</option></select><button type="button" id="searchProducts" class="btn btn-primary">ค้นหา</button></div>
+    <div class="table-responsive"><table class="table align-middle">
+        <thead><tr><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>วันที่เริ่มใช้</th><th>วันที่สิ้นสุด</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+        <tbody id="productRows">
+        </tbody>
+    </table></div>
+    <div class="d-flex gap-2"><button id="previousPage" class="btn btn-outline-secondary" type="button">ก่อนหน้า</button><span id="pageInfo" class="align-self-center"></span><button id="nextPage" class="btn btn-outline-secondary" type="button">ถัดไป</button></div>
+</div></div>
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title fs-5" id="deleteProductTitle">ยืนยันการลบรายการสินค้า</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">ต้องการยกเลิกรายการสินค้านี้หรือไม่?</div>
+        <form id="deleteProductForm" method="post">
+            <input type="hidden" name="licensePlateID" value="@Model.LicensePlateID" /><input type="hidden" id="deleteProductId" name="id" />
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button type="submit" class="btn btn-danger">ลบรายการสินค้า</button></div>
+        </form>
+    </div></div>
+</div>
+@section Scripts {
+<script src="~/js/setup-api.js" asp-append-version="true"></script>
+<script>
+(() => {
+    const api = '@Url.Content("~/v1/Setup/LicensePlateProduct/")';
+    const token = $('input[name="__RequestVerificationToken"]').first().val();
+    const parent = @Model.LicensePlateID;
+    let page = 1, rows = [];
+    const message = (text, error = true) => $('#productMessage').removeClass('d-none alert-danger alert-success').addClass(error ? 'alert-danger' : 'alert-success').text(text);
+    function load() {
+        return $.getJSON(api + 'Search', { LicensePlateID: parent, Page: page, PerPage: 10, TextSearch: $('#productSearch').val(), DataStatus: $('#productStatus').val() }).done(response => {
+            const result = SetupApi.page(response); rows = result.rows; page = result.page;
+            const body = $('#productRows').empty();
+            rows.forEach(row => {
+                const tr = $('<tr>');
+                [row.productCode, row.productName, row.effDateFrom?.slice(0,10), row.effDateTo?.slice(0,10), row.dataStatus === 'A' ? 'ใช้งานอยู่' : 'ยกเลิก'].forEach(value => $('<td>').text(value ?? '—').appendTo(tr));
+                const actions = $('<td>').appendTo(tr);
+                $('<button type="button" class="btn btn-sm btn-outline-primary me-2">แก้ไข</button>').on('click', () => {
+                    $('#recordId').val(row.id); $('#ProductID').val(row.productID); $('#EffDateFrom').val(row.effDateFrom.slice(0,10)); $('#EffDateTo').val(row.effDateTo.slice(0,10));
+                }).appendTo(actions);
+                if (row.dataStatus === 'A') $('<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteProductModal">ลบ</button>').attr('data-id', row.id).appendTo(actions);
+                body.append(tr);
+            });
+            if (!rows.length) body.append('<tr><td colspan="6" class="text-center">ยังไม่มีรายการสินค้า</td></tr>');
+            $('#pageInfo').text(page + ' / ' + result.totalPages + ' (' + result.totalCount + ')');
+            $('#previousPage').prop('disabled', page <= 1); $('#nextPage').prop('disabled', page >= result.totalPages);
+        }).fail(xhr => message(xhr.responseJSON?.Message || 'โหลดข้อมูลไม่สำเร็จ'));
+    }
+    $('#searchProducts, #productStatus').on('click change', function(event) { if ((this.id === 'searchProducts' && event.type === 'click') || (this.id === 'productStatus' && event.type === 'change')) { page = 1; load(); } });
+    $('#previousPage').on('click', () => { page--; load(); }); $('#nextPage').on('click', () => { page++; load(); });
+    $('#productForm').on('submit', function(event) {
+        event.preventDefault(); if (!this.reportValidity()) return;
+        const button = $(this).find('button[type="submit"]').prop('disabled',true);
+        const id = Number($('#recordId').val());
+        $.ajax({ url: api + 'Save', method:'POST', contentType:'application/json', headers:{ RequestVerificationToken: token }, data:JSON.stringify({ ID:id, LicensePlateID:parent, ProductID:Number($('#ProductID').val()), EffDateFrom:$('#EffDateFrom').val(), EffDateTo:$('#EffDateTo').val(), DataStatus:rows.find(row => row.id === id)?.dataStatus || 'A' }) })
+            .done(() => { $('#recordId').val(0); message('บันทึกเรียบร้อยแล้ว',false); load(); })
+            .fail(xhr => message(xhr.responseJSON?.Message || 'บันทึกไม่สำเร็จ')).always(() => button.prop('disabled',false));
+    });
+    document.getElementById('deleteProductModal').addEventListener('show.bs.modal', event => $('#deleteProductId').val(event.relatedTarget.dataset.id));
+    $('#deleteProductForm').on('submit', function(event) {
+        event.preventDefault(); const button = $(this).find('button[type="submit"]').prop('disabled',true);
+        $.ajax({ url:api+'Delete', method:'DELETE', contentType:'application/json', headers:{RequestVerificationToken:token}, data:JSON.stringify({ID:Number($('#deleteProductId').val())}) })
+            .done(() => { bootstrap.Modal.getInstance(document.getElementById('deleteProductModal')).hide(); message('ลบเรียบร้อยแล้ว',false); load(); })
+            .fail(xhr => message(xhr.responseJSON?.Message || 'ลบไม่สำเร็จ')).always(() => button.prop('disabled',false));
+    });
+    load();
+})();
+</script>
+}

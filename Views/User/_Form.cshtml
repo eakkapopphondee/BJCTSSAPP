@@ -1,0 +1,46 @@
+@model thaibev.Models.UserViewModel
+
+<form id="userForm" class="card shadow-sm" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+    {
+        <input type="hidden" name="Id" value="@Model.Id" />
+    }
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-3">
+            <div class="col-12 col-md-6"><label class="form-label" asp-for="UserFullName">ชื่อ-นามสกุล <span class="text-danger required-marker" aria-hidden="true">*</span></label><input asp-for="UserFullName" class="form-control" maxlength="150" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" asp-for="UserName">ชื่อผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input asp-for="UserName" class="form-control" maxlength="50" autocomplete="off" required /></div>
+            <div class="col-12 col-md-6"><label class="form-label" asp-for="Email">อีเมล</label><input asp-for="Email" type="email" class="form-control" maxlength="80" /></div>
+            <div class="col-12 col-md-6"><label class="form-label" asp-for="RoleID">กลุ่มผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><select asp-for="RoleID" asp-items="Model.Roles" class="form-select" required><option value="">เลือกกลุ่มผู้ใช้งาน</option></select></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Create")
+            {
+                <input type="hidden" name="DataStatus" value="A" />
+                <div class="col-12 col-md-6"><label class="form-label" for="Password">รหัสผ่าน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input id="Password" name="Password" type="password" class="form-control" autocomplete="new-password" required /></div>
+                <div class="col-12 col-md-6"><label class="form-label" for="ConfirmPassword">ยืนยันรหัสผ่าน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input id="ConfirmPassword" name="ConfirmPassword" type="password" class="form-control" autocomplete="new-password" required /></div>
+            }
+            else
+            {
+                <div class="col-12 col-md-6"><label class="form-label" asp-for="DataStatus">สถานะ</label><select asp-for="DataStatus" class="form-select"><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option></select></div>
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-secondary" href="@Url.Action("Index", "User")">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">@(ViewContext.RouteData.Values["action"]?.ToString() == "Edit" ? "บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว." : "บันทึกข้อมูลผู้ใช้งานเรียบร้อยแล้ว")</div>
+            <div class="modal-footer"><a class="btn btn-success" href="@Url.Action("Index", "User")">ตกลง</a></div>
+        </div>
+    </div>
+</div>
+
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert" style="white-space:pre-line"></div>
+
+

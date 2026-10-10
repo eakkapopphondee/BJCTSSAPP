@@ -1,0 +1,43 @@
+@model thaibev.Models.ConstantViewModel
+<form id="constantForm" class="card">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-2">
+            <div class="col-12"><label asp-for="FactoryCode" class="form-label">รหัสบริษัท/โรงงาน <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="FactoryCode" asp-items="Model.Factories" class="form-select" required><option value="">เลือกโรงงาน</option></select></div>
+            <div class="col-12 col-md-4"><div class="form-check"><input id="Activate" name="Activate" type="checkbox" class="form-check-input" value="Y" checked="@(Model.Activate == "Y")" /><label for="Activate" class="form-check-label">เปิดใช้งาน</label></div></div>
+            <div class="col-12 col-md-4"><div class="form-check"><input id="ShowInCardFlag" name="ShowInCardFlag" type="checkbox" class="form-check-input" value="Y" checked="@(Model.ShowInCardFlag == "Y")" /><label for="ShowInCardFlag" class="form-check-label">แสดงในบัตรชั่ง</label></div></div>
+            <div class="col-12 col-md-4"><div class="form-check"><input id="ShowInProgramFlag" name="ShowInProgramFlag" type="checkbox" class="form-check-input" value="Y" checked="@(Model.ShowInProgramFlag == "Y")" /><label for="ShowInProgramFlag" class="form-check-label">แสดงในหน้าจอชั่ง</label></div></div>
+            <div class="col-12 col-md-4"><label asp-for="ConstantCode" class="form-label">รหัสค่าคงที่ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ConstantCode" class="form-control" maxlength="20" required /></div>
+            <div class="col-12 col-md-8"><label asp-for="ConstantName" class="form-label">ชื่อค่าคงที่ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ConstantName" class="form-control" maxlength="200" required /></div>
+            <div class="col-12"><label asp-for="ConstantValue" class="form-label">ค่า IP / ค่าคงที่ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><textarea asp-for="ConstantValue" class="form-control" maxlength="200" rows="2" required></textarea></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-4"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option>
+                @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus">@Model.DataStatus</option> }
+            </select></div>
+            }
+            else
+            {
+                <input asp-for="DataStatus" type="hidden" value="A" />
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Constant" asp-action="Index">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">บันทึกข้อมูลค่าคงที่เรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="Constant" asp-action="Index">กลับไปรายการค่าคงที่</a></div>
+    </div></div>
+</div>
+
+
+
+

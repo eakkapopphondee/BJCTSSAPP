@@ -1,0 +1,61 @@
+<script>
+(() => {
+    const integerFields = ['Id'];
+    const token = $('input[name="__RequestVerificationToken"]').val();
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    const timeInput = document.getElementById('NotificationTime');
+    const initialTimeValue = timeInput.value;
+    function refreshEmpty() {
+        $('.recipient-section').each(function () {
+            $(this).find('.recipient-empty').toggle($(this).find('tbody tr').length === 0);
+        });
+    }
+    $('.add-recipient').on('click', function () {
+        const row = $('<tr data-id="0"><td><input type="email" class="form-control recipient-email" maxlength="200" required aria-label="อีเมล (จำเป็นต้องกรอก)" /></td><td><input type="text" class="form-control recipient-owner" maxlength="200" required aria-label="ชื่อเจ้าของอีเมล (จำเป็นต้องกรอก)" /></td><td><button type="button" class="btn btn-outline-danger remove-recipient"><span aria-hidden="true">×</span> ลบ</button></td></tr>');
+        $(this).closest('.recipient-section').find('tbody').append(row);
+        refreshEmpty();
+        row.find('input').first().trigger('focus');
+    });
+    $('.recipient-section').on('click', '.remove-recipient', function () {
+        $(this).closest('tr').remove();
+        refreshEmpty();
+    });
+    refreshEmpty();
+    function recipients(group) {
+        return $('.recipient-section[data-group="' + group + '"] tbody tr').map(function () {
+            return { id: Number($(this).attr('data-id')), email: $(this).find('.recipient-email').val(), owner: $(this).find('.recipient-owner').val() };
+        }).get();
+    }
+    let saved = false;
+    $('#notificationForm').on('submit', function (event) {
+        event.preventDefault();
+        if (saved || !this.reportValidity()) return;
+        $('#errorMessage').addClass('d-none');
+        const button = $('#btnSave').prop('disabled', true);
+        const payload = {};
+        $(this).serializeArray().forEach(({ name, value }) => {
+            if (name === '__RequestVerificationToken') return;
+            payload[name] = value === '' ? null : integerFields.includes(name) ? Number(value) : value;
+        });
+        payload.ToRecipients = recipients('to');
+        payload.CcRecipients = recipients('cc');
+        // HTML time inputs support milliseconds; preserve SQL time(7) when unchanged.
+        if (timeInput.dataset.originalTime && timeInput.value === initialTimeValue) {
+            payload.NotificationTime = timeInput.dataset.originalTime;
+        } else if (payload.NotificationTime && payload.NotificationTime.length === 5) {
+            payload.NotificationTime += ':00';
+        }
+        $.ajax({
+            url: '@Url.Action(ViewContext.RouteData.Values["action"]?.ToString(), "Notification")',
+            method: 'POST', contentType: 'application/json',
+            headers: { 'RequestVerificationToken': token }, data: JSON.stringify(payload)
+        }).done(() => { saved = true; successModal.show(); })
+          .fail(xhr => {
+              const problem = xhr.responseJSON;
+              const errors = problem?.errors ? Object.values(problem.errors).flat().join('\n') : '';
+              $('#errorMessage').removeClass('d-none').text(errors || problem?.detail || 'ไม่สามารถบันทึกข้อมูลการแจ้งเตือนของระบบได้ กรุณาลองใหม่');
+          }).always(() => button.prop('disabled', saved));
+    });
+})();
+</script>
+

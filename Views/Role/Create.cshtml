@@ -1,0 +1,8 @@
+@model thaibev.Models.RoleViewModel
+@{ ViewData["Title"] = "เพิ่มกลุ่มผู้ใช้งาน"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">เพิ่มกลุ่มผู้ใช้งาน</h1><a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการกลุ่มผู้ใช้งาน</a>
+</div>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_FormScripts" /> }
+

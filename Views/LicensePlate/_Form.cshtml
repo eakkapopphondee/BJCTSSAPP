@@ -1,0 +1,44 @@
+@model thaibev.Models.LicensePlateViewModel
+<form id="licensePlateForm" class="card">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-2">
+            <div class="col-12 col-md-6"><label asp-for="TruckTypeID" class="form-label">ประเภทรถ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="TruckTypeID" asp-items="Model.TruckTypes" class="form-select" required><option value="">เลือกประเภทรถ</option></select></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-6"><label asp-for="QRCode" class="form-label">QR Code</label><input asp-for="QRCode" class="form-control" readonly /></div>
+            }
+            <div class="col-12 col-md-6"><label asp-for="PlateNumber" class="form-label">ทะเบียนรถ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="PlateNumber" class="form-control" maxlength="30" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="PlateProvinceID" class="form-label">จังหวัดทะเบียนรถ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="PlateProvinceID" asp-items="Model.Provinces" class="form-select" required><option value="">เลือกจังหวัด</option></select></div>
+            <div class="col-12 col-md-6"><label asp-for="TrailerNumber" class="form-label">ทะเบียนพ่วง <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="TrailerNumber" class="form-control" maxlength="30" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="TrailerProviceID" class="form-label">จังหวัดทะเบียนพ่วง <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="TrailerProviceID" asp-items="Model.Provinces" class="form-select" required><option value="">เลือกจังหวัด</option></select></div>
+            <div class="col-12 col-md-8"><label asp-for="TransportCompanyID" class="form-label">บริษัทขนส่ง</label><select asp-for="TransportCompanyID" asp-items="Model.TransportCompanies" class="form-select"><option value="">ไม่ระบุบริษัทขนส่ง</option></select></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-4"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option>
+                @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus">@Model.DataStatus</option> }
+            </select></div>
+            }
+            else
+            {
+                <input asp-for="DataStatus" type="hidden" value="A" />
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="LicensePlate" asp-action="Index">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">บันทึกข้อมูลทะเบียนรถเรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="LicensePlate" asp-action="Index">กลับไปรายการทะเบียนรถ</a></div>
+    </div></div>
+</div>
+
+

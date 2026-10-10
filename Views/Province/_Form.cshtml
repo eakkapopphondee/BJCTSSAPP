@@ -1,0 +1,35 @@
+@model thaibev.Models.ProvinceViewModel
+<form id="provinceForm" class="card">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-2">
+            <div class="col-12 col-md-4"><label asp-for="ProvinceCode" class="form-label">รหัสจังหวัด <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProvinceCode" class="form-control" maxlength="2" required /></div>
+            <div class="col-12 col-md-8"><label asp-for="ProvinceName" class="form-label">ชื่อจังหวัด <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProvinceName" class="form-control" maxlength="50" required /></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-4"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option>
+                @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus">@Model.DataStatus</option> }
+            </select></div>
+            }
+            else
+            {
+                <input asp-for="DataStatus" type="hidden" value="A" />
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Province" asp-action="Index">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">บันทึกข้อมูลจังหวัดเรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="Province" asp-action="Index">กลับไปรายการจังหวัด</a></div>
+    </div></div>
+</div>
+

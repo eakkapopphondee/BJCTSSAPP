@@ -1,0 +1,51 @@
+@model thaibev.Models.URLSettingViewModel
+<form id="urlSettingForm" class="card">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-2">
+            <div class="col-12"><label asp-for="FactoryCode" class="form-label">รหัสบริษัท/โรงงาน <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="FactoryCode" asp-items="Model.Factories" class="form-select" required><option value="">เลือกโรงงาน</option></select></div>
+            <div class="col-12 col-md-6"><label asp-for="URLSettingCode" class="form-label">URLSettingCode <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="URLSettingCode" class="form-control" maxlength="20" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="InOut" class="form-label">InOut <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="InOut" class="form-select" required><option value="">เลือก In / Out</option><option value="In">In</option><option value="Out">Out</option></select></div>
+            <div class="col-12 col-md-6"><label asp-for="URLSettingName" class="form-label">URLSettingName <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="URLSettingName" class="form-control" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="Method" class="form-label">Method <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="Method" class="form-control" maxlength="10" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="ContentType" class="form-label">ContentType <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ContentType" class="form-control" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="Header1Type" class="form-label">Header1Type <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="Header1Type" class="form-control" maxlength="100" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="Header1Value" class="form-label">Header1Value <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="Header1Value" class="form-control" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="Header2Type" class="form-label">Header2Type</label><input asp-for="Header2Type" class="form-control" maxlength="100" /></div>
+            <div class="col-12 col-md-6"><label asp-for="Header2Value" class="form-label">Header2Value</label><input asp-for="Header2Value" class="form-control" maxlength="200" /></div>
+            <div class="col-12 col-md-6"><label asp-for="Header3Type" class="form-label">Header3Type</label><input asp-for="Header3Type" class="form-control" maxlength="100" /></div>
+            <div class="col-12 col-md-6"><label asp-for="Header3Value" class="form-label">Header3Value</label><input asp-for="Header3Value" class="form-control" maxlength="200" /></div>
+            <div class="col-12 col-md-6"><label asp-for="URL" class="form-label">URL <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="URL" class="form-control" maxlength="250" required /></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-4"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option>
+                @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus">@Model.DataStatus</option> }
+            </select></div>
+            }
+            else
+            {
+                <input asp-for="DataStatus" type="hidden" value="A" />
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="URLSetting" asp-action="Index">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">บันทึกข้อมูล URL เรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="URLSetting" asp-action="Index">กลับไปรายการ URL</a></div>
+    </div></div>
+</div>
+
+
+
+
+
+

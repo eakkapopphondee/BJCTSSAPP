@@ -1,0 +1,9 @@
+﻿@model thaibev.Models.ProductTypeViewModel
+@{ ViewData["Title"] = "แก้ไขประเภทสินค้า"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">แก้ไขประเภทสินค้า <span class="factory-total">ID @Model.Id</span></h1><a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการประเภทสินค้า</a>
+</div>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_FormScripts" /> }
+
+

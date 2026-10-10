@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "ข้อมูลประเภทสินค้า";
+}
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="d-flex align-items-center gap-2"><h1 class="mb-0">ข้อมูลประเภทสินค้า</h1><span class="factory-total"><span id="productTypeCount" aria-live="polite">—</span> รายการ</span></div>
+    <div class="d-flex flex-column align-items-end gap-1">
+        <small class="text-muted text-end">Import รองรับไฟล์ .xlsx ขนาดไม่เกิน 5 MB และข้อมูล 1–5,000 แถว</small>
+        <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
+            <a class="btn btn-primary btn-add" href="@Url.Action("Create", "ProductType")">＋ เพิ่มประเภทสินค้า</a>
+            <button id="btnTemplate" type="button" class="btn btn-outline-primary">↓ ดาวน์โหลด Excel template</button>
+            <button id="btnImport" type="button" class="btn btn-outline-primary">↑ Import ข้อมูล</button>
+        </div>
+    </div>
+</div>
+@Html.AntiForgeryToken()
+<div id="alertMessage" class="alert d-none" role="alert"></div>
+<span id="connectionStatus" class="visually-hidden" role="status">กำลังเชื่อมต่อฐานข้อมูล...</span>
+<div class="card">
+    <div class="search-toolbar">
+        <div class="search-field"><label for="searchBox" class="visually-hidden">ค้นหาประเภทสินค้า</label><span class="search-symbol" aria-hidden="true">⌕</span><input id="searchBox" type="search" class="form-control" placeholder="ค้นหารหัสหรือชื่อกลุ่มสินค้า รหัสหรือชื่อกลุ่มใน ERP" /></div>
+        <label for="dataStatusFilter" class="visually-hidden">สถานะ</label>
+        <select id="dataStatusFilter" class="form-select status-filter"><option value="L">ทั้งหมด</option><option value="A" selected>ใช้งานอยู่</option><option value="C">ยกเลิก</option></select>
+        <button id="btnSearch" type="button" class="btn btn-outline-primary">ค้นหา</button>
+        <input id="importFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="visually-hidden" aria-label="เลือกไฟล์ Excel ประเภทสินค้า" />
+        <button id="btnExport" type="button" class="export-button" disabled title="ส่งออกผลค้นหาทั้งหมด">↓ ส่งออก Excel (ผลค้นหาทั้งหมด)</button>
+    </div>
+    <div class="table-responsive">
+        <table id="productTypeTable" class="table table-hover factory-table master-table master-table-4 mb-0" aria-label="รายการประเภทสินค้า">
+            <thead><tr><th>รหัส / ชื่อประเภทสินค้า</th><th>รหัส / ชื่อประเภทสินค้าใน SAP</th><th>หมายเหตุ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="5" class="text-center text-muted py-5">กำลังโหลดข้อมูล...</td></tr></tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <div id="paginationSummary" aria-live="polite"></div>
+        <div class="pagination-controls"><label for="pageSize">แสดง</label><partial name="_PageSizeSelector" /><span>ต่อหน้า</span><nav aria-label="หน้ารายการประเภทสินค้า"><ul id="pagination" class="pagination mb-0"></ul></nav></div>
+    </div>
+</div>
+<div class="modal fade" id="importResultModal" tabindex="-1" aria-labelledby="importResultTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header"><h2 id="importResultTitle" class="modal-title fs-5">ผลการ Import ประเภทสินค้า</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">
+            <p id="importSummary" aria-live="polite"></p>
+            <div class="table-responsive"><table class="table table-striped mb-0" aria-label="ผลการ Import ประเภทสินค้า">
+                <thead><tr><th>แถว Excel</th><th>รหัสประเภทสินค้า</th><th>ผล</th><th>ID</th><th>รายละเอียด</th></tr></thead>
+                <tbody id="importResultRows"></tbody>
+            </table></div>
+        </div>
+        <div class="modal-footer"><button id="btnDownloadResult" type="button" class="btn btn-outline-primary">↓ ดาวน์โหลดผล Excel</button><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button></div>
+    </div></div>
+</div>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบประเภทสินค้า</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">ต้องการลบข้อมูลประเภทสินค้า <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบประเภทสินค้า</button></div>
+    </div></div>
+</div>
+
+@section Scripts {
+<script src="~/js/setup-api.js" asp-append-version="true"></script>
+<script src="~/js/excel-export.js" asp-append-version="true"></script>
+<script>
+(() => {
+    let currentPage = 1, deleteId = null, visibleRows = [], activeRequest = null;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const importModal = new bootstrap.Modal(document.getElementById('importResultModal'));
+    const token = $('input[name="__RequestVerificationToken"]').val();
+    const display = value => $('<div>').text(value ?? '').html();
+    const importFields = ['ProductTypeCode', 'ProductTypeName', 'SAPCode', 'SAPDesc', 'Remark', 'DataStatus'];
+    let importResults = [], importedRows = [];
+    function message(text, type = 'danger') {
+        $('#alertMessage').removeClass('d-none alert-danger alert-success').addClass(`alert-${type}`).text(text);
+    }
+    function loadRows(page = currentPage) {
+        if (activeRequest) activeRequest.abort();
+        $('#btnSearch, #btnExport').prop('disabled', true);
+        $('#alertMessage').addClass('d-none');
+        $('#connectionStatus').text('กำลังโหลดข้อมูล...');
+        activeRequest = $.getJSON('@Url.Content("~/v1/Setup/ProductType/Search")', {
+            TextSearch: $('#searchBox').val(), DataStatus: $('#dataStatusFilter').val(), Page: page, PerPage: Number($('#pageSize').val())
+        }).done(response => {
+            response = SetupApi.page(response);
+            currentPage = response.page;
+            visibleRows = response.rows;
+            $('#productTypeCount').text(response.totalCount.toLocaleString('th-TH'));
+            $('#connectionStatus').text('เชื่อมต่อฐานข้อมูลแล้ว');
+            $('#btnExport').prop('disabled', !visibleRows.length);
+            renderRows(visibleRows);
+            renderPagination(response);
+        }).fail(xhr => {
+            if (xhr.statusText === 'abort') return;
+            visibleRows = [];
+            $('#productTypeCount').text('—');
+            $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
+            $('#productTypeTable tbody').html('<tr><td colspan="5" class="text-center text-muted py-5">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#pagination, #paginationSummary').empty();
+            message('ไม่สามารถโหลดข้อมูลประเภทสินค้าได้ กรุณาลองใหม่');
+        }).always(() => $('#btnSearch').prop('disabled', false));
+    }
+    function renderRows(rows) {
+        if (!rows.length) {
+            $('#productTypeTable tbody').html('<tr><td colspan="5" class="text-center text-muted py-5">ไม่พบข้อมูลประเภทสินค้า</td></tr>');
+            return;
+        }
+        $('#productTypeTable tbody').html(rows.map(row => `<tr>
+            <td><div class="factory-code">${display(row.productTypeCode)}</div><div class="cell-title">${display(row.productTypeName)}</div></td>
+            <td><div class="factory-code">${display(row.sapCode)}</div><div class="cell-title">${display(row.sapDesc)}</div></td>
+            <td><div class="customer-remark">${display(row.remark)}</div></td>
+            <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
+            <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "ProductType")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
+        </tr>`).join(''));
+    }
+    function renderPagination({ page, totalPages, totalCount, pageSize }) {
+        const first = totalCount ? (page - 1) * pageSize + 1 : 0;
+        $('#paginationSummary').text(`${first}–${Math.min(page * pageSize, totalCount)} จาก ${totalCount} รายการ`);
+        $('#pagination').html(`<li class="page-item ${page <= 1 ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page - 1}" aria-label="หน้าก่อนหน้า" ${page <= 1 ? 'disabled' : ''}>‹</button></li><li class="page-position">${page} / ${totalPages}</li><li class="page-item ${page >= totalPages ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page + 1}" aria-label="หน้าถัดไป" ${page >= totalPages ? 'disabled' : ''}>›</button></li>`);
+    }
+    $('#btnExport').on('click', () => {
+        const fields = ['id', 'productTypeCode', 'productTypeName', 'sapCode', 'sapDesc', 'remark', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
+        const button = $("#btnExport").prop("disabled", true);
+        ExcelExport.downloadSearch(fields, '@Url.Content("~/v1/Setup/ProductType/Search")', { TextSearch: $('#searchBox').val(), DataStatus: $('#dataStatusFilter').val() }, `productType.xlsx`)
+            .catch(() => message("ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่"))
+            .finally(() => button.prop("disabled", false));
+    });
+    $('#btnTemplate').on('click', () => ExcelExport.download(importFields, [], 'product-type-import-template.xlsx', { textColumns: true }));
+    $('#btnImport').on('click', () => $('#importFile').trigger('click'));
+    $('#importFile').on('change', function () {
+        const file = this.files?.[0];
+        this.value = '';
+        if (!file) return;
+        if (!file.name.toLowerCase().endsWith('.xlsx') || file.size > 5000000) {
+            message('กรุณาเลือกไฟล์ .xlsx ขนาดไม่เกิน 5 MB');
+            return;
+        }
+        const form = new FormData();
+        form.append('file', file);
+        $('#btnImport, #btnTemplate').prop('disabled', true);
+        $('#alertMessage').addClass('d-none');
+        $.ajax({ url: '@Url.Action("ParseImport", "ProductType")', method: 'POST', data: form,
+            processData: false, contentType: false, headers: { RequestVerificationToken: token }
+        }).then(parsed => {
+            importedRows = parsed.Data;
+            return $.ajax({ url: '@Url.Action("Import", "SetupProductType")', method: 'POST',
+                contentType: 'application/json', headers: { RequestVerificationToken: token },
+                data: JSON.stringify(importedRows) });
+        }).done(response => {
+            const result = response.Data;
+            importResults = result.Rows;
+            $('#importSummary').text(`ทั้งหมด ${result.TotalCount} แถว — สำเร็จ ${result.SuccessCount} แถว — ไม่สำเร็จ ${result.ErrorCount} แถว`);
+            $('#importResultRows').html(importResults.map(row => `<tr>
+                <td>${Number(row.RowNumber)}</td><td>${display(row.ProductTypeCode)}</td>
+                <td class="${row.Success ? 'text-success' : 'text-danger'}">${row.Success ? 'สำเร็จ' : 'ผิดพลาด'}</td>
+                <td>${row.ID == null ? '' : Number(row.ID)}</td><td>${display(row.Message)}</td></tr>`).join(''));
+            importModal.show();
+            if (result.SuccessCount) loadRows(1);
+        }).fail(xhr => message(xhr.responseJSON?.Message || 'ไม่สามารถ Import ข้อมูลได้ กรุณาลองใหม่'))
+            .always(() => $('#btnImport, #btnTemplate').prop('disabled', false));
+    });
+    $('#btnDownloadResult').on('click', () => {
+        const original = new Map(importedRows.map(row => [row.ExcelRow, row]));
+        const fields = ['ExcelRow', ...importFields, 'Result', 'ID', 'Message'];
+        const rows = importResults.map(row => ({ ...original.get(row.RowNumber), ExcelRow: row.RowNumber,
+            Result: row.Success ? 'สำเร็จ' : 'ผิดพลาด', ID: row.ID, Message: row.Message }));
+        ExcelExport.download(fields, rows, 'product-type-import-result.xlsx');
+    });
+    $('#btnSearch').on('click', () => loadRows(1));
+    $('#searchBox').on('keydown', event => { if (event.key === 'Enter') loadRows(1); });
+    $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
+    $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
+    $('#productTypeTable').on('click', '.btn-delete', function () {
+        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+    });
+    $('#btnConfirmDelete').on('click', function () {
+        if (deleteId === null) return;
+        const button = $(this).prop('disabled', true);
+        $.ajax({ url: `@Url.Content("~/v1/Setup/ProductType/Delete")`, method: 'DELETE', contentType: 'application/json', data: JSON.stringify({ ID: Number(deleteId) }), headers: { 'RequestVerificationToken': token } })
+            .done(() => { modal.hide(); loadRows(); })
+            .fail(xhr => { modal.hide(); message(xhr.responseJSON?.Message || Object.values(xhr.responseJSON?.errors || {}).flat().join(' ') || 'ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่'); })
+            .always(() => button.prop('disabled', false));
+    });
+    loadRows();
+})();
+</script>
+}
+
+
+

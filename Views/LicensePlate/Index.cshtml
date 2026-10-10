@@ -1,0 +1,174 @@
+@{
+    ViewData["Title"] = "ข้อมูลทะเบียนรถ";
+}
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="d-flex align-items-center gap-2"><h1 class="mb-0">ข้อมูลทะเบียนรถ</h1><span class="factory-total"><span id="licensePlateCount" aria-live="polite">—</span> รายการ</span></div>
+    <a class="btn btn-primary btn-add" href="@Url.Action("Create", "LicensePlate")">＋ เพิ่มทะเบียนรถ</a>
+</div>
+@Html.AntiForgeryToken()
+@if (TempData["QRCodeWarning"] is string warning)
+{
+    <div class="alert alert-warning" role="alert">@warning</div>
+}
+<div id="alertMessage" class="alert d-none" role="alert"></div>
+<span id="connectionStatus" class="visually-hidden" role="status">กำลังเชื่อมต่อฐานข้อมูล...</span>
+<div class="card">
+    <div class="search-toolbar">
+        <div class="search-field"><label for="searchBox" class="visually-hidden">ค้นหาทะเบียนรถ</label><span class="search-symbol" aria-hidden="true">⌕</span><input id="searchBox" type="search" class="form-control" placeholder="ค้นหาทะเบียน ทะเบียนพ่วง หรือชื่อจังหวัด" /></div>
+        <label for="dataStatusFilter" class="visually-hidden">สถานะ</label>
+        <select id="dataStatusFilter" class="form-select status-filter"><option value="L">ทั้งหมด</option><option value="A" selected>ใช้งานอยู่</option><option value="C">ยกเลิก</option></select>
+        <button id="btnSearch" type="button" class="btn btn-outline-primary">ค้นหา</button>
+        <button id="btnExport" type="button" class="export-button" disabled title="ส่งออกผลค้นหาทั้งหมด">↓ ส่งออก Excel (ผลค้นหาทั้งหมด)</button>
+    </div>
+    <div class="table-responsive">
+        <table id="licensePlateTable" class="table table-hover factory-table master-table license-plate-table mb-0" aria-label="รายการทะเบียนรถ">
+            <thead><tr><th>ทะเบียนรถ</th><th>จังหวัดรถ</th><th>ทะเบียนพ่วง</th><th>จังหวัดพ่วง</th><th>บริษัทขนส่ง</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="7" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+        </table>
+    </div>
+    <div class="table-footer">
+        <div id="paginationSummary" aria-live="polite"></div>
+        <div class="pagination-controls"><label for="pageSize">แสดง</label><partial name="_PageSizeSelector" /><span>ต่อหน้า</span><nav aria-label="หน้ารายการทะเบียนรถ"><ul id="pagination" class="pagination mb-0"></ul></nav></div>
+    </div>
+</div>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบทะเบียนรถ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">ต้องการลบข้อมูลทะเบียนรถ <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบทะเบียนรถ</button></div>
+    </div></div>
+</div>
+
+<div class="modal fade" id="printQRCodeModal" tabindex="-1" aria-labelledby="printQRCodeTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 class="modal-title fs-5" id="printQRCodeTitle">พิมพ์ QR Code</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">
+            <div id="printQRCodeError" class="alert alert-danger d-none" role="alert">ไม่สามารถสร้าง QR Code ได้ กรุณาลองใหม่</div>
+            <iframe id="printQRCodeFrame" title="พิมพ์ QR Code" style="width:100%;height:390px;border:0;"></iframe>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button><button id="btnPrintQRCode" type="button" class="btn btn-primary" disabled>พิมพ์</button></div>
+    </div></div>
+</div>
+@section Scripts {
+<script src="~/js/setup-api.js" asp-append-version="true"></script>
+<script src="~/js/excel-export.js" asp-append-version="true"></script>
+<script>
+(() => {
+    let currentPage = 1, deleteId = null, visibleRows = [], activeRequest = null;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const printModal = new bootstrap.Modal(document.getElementById('printQRCodeModal'));
+    const printFrame = document.getElementById('printQRCodeFrame');
+    printFrame.addEventListener('load', async () => {
+        if (!printFrame.getAttribute('src')) return;
+        const ticket = printFrame.contentDocument?.querySelector('.ticket');
+        if (!ticket) {
+            $('#printQRCodeError').removeClass('d-none');
+            $('#btnPrintQRCode').prop('disabled', true);
+            return;
+        }
+        try {
+            await Promise.all(Array.from(ticket.querySelectorAll('img')).map(img => img.decode()));
+            $('#btnPrintQRCode').prop('disabled', false);
+        } catch { $('#printQRCodeError').removeClass('d-none'); }
+    });
+    $('#btnPrintQRCode').on('click', () => {
+        printFrame.contentWindow.focus();
+        printFrame.contentWindow.print();
+    });
+    $('#printQRCodeModal').on('hidden.bs.modal', () => {
+        printFrame.removeAttribute('src');
+        $('#btnPrintQRCode').prop('disabled', true);
+    });
+    const token = $('input[name="__RequestVerificationToken"]').val();
+    const display = value => $('<div>').text(value ?? '').html();
+    function message(text, type = 'danger') {
+        $('#alertMessage').removeClass('d-none alert-danger alert-success').addClass(`alert-${type}`).text(text);
+    }
+    function loadRows(page = currentPage) {
+        if (activeRequest) activeRequest.abort();
+        $('#btnSearch, #btnExport').prop('disabled', true);
+        $('#alertMessage').addClass('d-none');
+        $('#connectionStatus').text('กำลังโหลดข้อมูล...');
+        activeRequest = $.getJSON('@Url.Content("~/v1/Setup/LicensePlate/Search")', {
+            TextSearch: $('#searchBox').val(), DataStatus: $('#dataStatusFilter').val(), Page: page, PerPage: Number($('#pageSize').val())
+        }).done(response => {
+            response = SetupApi.page(response);
+            currentPage = response.page;
+            visibleRows = response.rows;
+            $('#licensePlateCount').text(response.totalCount.toLocaleString('th-TH'));
+            $('#connectionStatus').text('เชื่อมต่อฐานข้อมูลแล้ว');
+            $('#btnExport').prop('disabled', !visibleRows.length);
+            renderRows(visibleRows);
+            renderPagination(response);
+        }).fail(xhr => {
+            if (xhr.statusText === 'abort') return;
+            visibleRows = [];
+            $('#licensePlateCount').text('—');
+            $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
+            $('#licensePlateTable tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#pagination, #paginationSummary').empty();
+            message('ไม่สามารถโหลดข้อมูลทะเบียนรถได้ กรุณาลองใหม่');
+        }).always(() => $('#btnSearch').prop('disabled', false));
+    }
+    function renderRows(rows) {
+        if (!rows.length) {
+            $('#licensePlateTable tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">ไม่พบข้อมูลทะเบียนรถ</td></tr>');
+            return;
+        }
+        $('#licensePlateTable tbody').html(rows.map(row => `<tr>
+            <td><div class="cell-title">${display(row.plateNumber)}</div></td>
+            <td>${display(row.plateProvinceName ?? 'ไม่พบจังหวัด')}</td>
+            <td><div class="cell-title">${display(row.trailerNumber)}</div></td>
+            <td>${display(row.trailerProvinceName ?? 'ไม่พบจังหวัด')}</td>
+            <td>${display(row.transportCompanyName ?? (row.transportCompanyID == null ? '—' : 'ไม่พบบริษัทขนส่ง'))}</td>
+            <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
+            <td><div class="row-actions flex-wrap"><button type="button" class="btn btn-sm btn-outline-primary btn-print-qr" data-id="${Number(row.id)}">พิมพ์ QR Code</button><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "LicensePlateProduct")?id=${encodeURIComponent(row.id)}">เพิ่มรายการสินค้า</a><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "LicensePlate")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
+        </tr>`).join(''));
+    }
+    function renderPagination({ page, totalPages, totalCount, pageSize }) {
+        const first = totalCount ? (page - 1) * pageSize + 1 : 0;
+        $('#paginationSummary').text(`${first}–${Math.min(page * pageSize, totalCount)} จาก ${totalCount} รายการ`);
+        $('#pagination').html(`<li class="page-item ${page <= 1 ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page - 1}" aria-label="หน้าก่อนหน้า" ${page <= 1 ? 'disabled' : ''}>‹</button></li><li class="page-position">${page} / ${totalPages}</li><li class="page-item ${page >= totalPages ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page + 1}" aria-label="หน้าถัดไป" ${page >= totalPages ? 'disabled' : ''}>›</button></li>`);
+    }
+    $('#btnExport').on('click', () => {
+        const fields = ['id', 'plateNumber', 'plateProvinceName', 'trailerNumber', 'trailerProvinceName', 'transportCompanyName', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
+        const button = $("#btnExport").prop("disabled", true);
+        ExcelExport.downloadSearch(fields, '@Url.Content("~/v1/Setup/LicensePlate/Search")', { TextSearch: $('#searchBox').val(), DataStatus: $('#dataStatusFilter').val() }, `licensePlate.xlsx`)
+            .catch(() => message("ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่"))
+            .finally(() => button.prop("disabled", false));
+    });
+    $('#btnSearch').on('click', () => loadRows(1));
+    $('#licensePlateTable').on('click', '.btn-print-qr', function () {
+        const button = $(this).prop('disabled', true);
+        $.ajax({ url: '@Url.Action("GenerateQRCode", "LicensePlate")', method: 'POST',
+            headers: { 'RequestVerificationToken': token }, data: { id: button.data('id') }
+        }).done(response => {
+            $('#btnPrintQRCode').prop('disabled', true);
+            $('#printQRCodeError').addClass('d-none');
+            printFrame.src = response.url;
+            printModal.show();
+        })
+          .fail(xhr => message(xhr.responseJSON?.message || 'ไม่สามารถสร้าง QR Code ได้ กรุณาลองใหม่'))
+          .always(() => button.prop('disabled', false));
+    });
+    $('#searchBox').on('keydown', event => { if (event.key === 'Enter') loadRows(1); });
+    $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
+    $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
+    $('#licensePlateTable').on('click', '.btn-delete', function () {
+        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+    });
+    $('#btnConfirmDelete').on('click', function () {
+        if (deleteId === null) return;
+        const button = $(this).prop('disabled', true);
+        $.ajax({ url: `@Url.Content("~/v1/Setup/LicensePlate/Delete")`, method: 'DELETE', contentType: 'application/json', data: JSON.stringify({ ID: Number(deleteId) }), headers: { 'RequestVerificationToken': token } })
+            .done(() => { modal.hide(); loadRows(); })
+            .fail(() => { modal.hide(); message('ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่'); })
+            .always(() => button.prop('disabled', false));
+    });
+    loadRows();
+})();
+</script>
+}
+
+
+

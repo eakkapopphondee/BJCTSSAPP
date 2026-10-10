@@ -1,0 +1,30 @@
+using Microsoft.AspNetCore.Mvc;
+using thaibev.Data;
+using thaibev.Models;
+using thaibev.Infrastructure.Api;
+
+namespace thaibev.Controllers;
+
+public sealed class UserController(UserService service) : Controller
+{
+    [HttpGet]
+    public IActionResult Index() => View();
+
+    [HttpGet]
+    public async Task<IActionResult> Create(CancellationToken cancellationToken) =>
+        View(await service.CreateModelAsync(cancellationToken));
+
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+    {
+        var model = await service.FindAsync(id, cancellationToken);
+        return model is null ? NotFound() : View(model);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, StandardApiResponse]
+    public async Task<IActionResult> ChangePassword([FromForm] ChangeUserPasswordViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        return ApiResponse.Success(await service.ChangePasswordAsync(model, User, cancellationToken)).ToResult();
+    }
+}

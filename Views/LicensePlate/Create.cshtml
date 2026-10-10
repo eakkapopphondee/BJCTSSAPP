@@ -1,0 +1,9 @@
+﻿@model thaibev.Models.LicensePlateViewModel
+@{ ViewData["Title"] = "เพิ่มทะเบียนรถ"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">เพิ่มทะเบียนรถ</h1><a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการทะเบียนรถ</a>
+</div>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_FormScripts" /> }
+
+

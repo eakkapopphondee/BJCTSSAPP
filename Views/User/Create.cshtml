@@ -1,0 +1,16 @@
+@model thaibev.Models.UserViewModel
+
+@{
+    ViewData["Title"] = "เพิ่มผู้ใช้งาน";
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h3 mb-0">เพิ่มผู้ใช้งาน</h1>
+    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "User")">ย้อนกลับ</a>
+</div>
+
+<partial name="_Form" model="Model" />
+
+@section Scripts {
+    <partial name="_FormScripts" />
+}

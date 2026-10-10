@@ -1,0 +1,8 @@
+@model thaibev.Models.ProgramTypeViewModel
+@{ ViewData["Title"] = "แก้ไขประเภทโปรแกรม"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">แก้ไขประเภทโปรแกรม <span class="factory-total">ID @Model.Id</span></h1><a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการประเภทโปรแกรม</a>
+</div>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_FormScripts" /> }
+

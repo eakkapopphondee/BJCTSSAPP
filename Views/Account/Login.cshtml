@@ -1,0 +1,9 @@
+@model thaibev.Models.LoginViewModel
+@{ Layout = "_AuthLayout"; ViewData["Title"] = "เข้าสู่ระบบ"; }
+<h1 class="h4 mb-3">เข้าสู่ระบบ</h1>
+<form asp-controller="Account" asp-action="Login" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <div class="mb-3"><label asp-for="Username" class="form-label">ชื่อผู้ใช้</label><input asp-for="Username" class="form-control" autocomplete="username" required autofocus /></div>
+    <div class="mb-3"><label asp-for="Password" class="form-label">รหัสผ่าน</label><input asp-for="Password" class="form-control" autocomplete="current-password" required /></div>
+    <button type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
+</form>

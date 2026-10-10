@@ -1,0 +1,144 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var useLargerPageFont = currentController is not ("Home" or "Dashboard" or "Account")
+        && currentAction is ("Index" or "Search" or "Edit" or "Create");
+    var sectionTitle = currentController switch
+    {
+        "User" => "ผู้ใช้งาน",
+        "Role" => "กลุ่มผู้ใช้งาน",
+        "Permission" => "กำหนดสิทธิ์",
+        "Dashboard" => "Dashboard",
+        "Customer" => "ลูกค้า/บริษัทผู้ส่ง",
+        "TransportCompany" => "บริษัทขนส่ง",
+        "TruckType" => "ประเภทรถ",
+        "WeightType" => "ประเภทการชั่ง",
+        "ProgramType" => "ประเภทโปรแกรมชั่ง",
+        "Notification" => "การแจ้งเตือน",
+        "Province" => "จังหวัด",
+        "LicensePlate" => "ทะเบียนรถ",
+        "ProductType" => "ประเภทสินค้า",
+        "Product" => "ทะเบียนสินค้า",
+        "Constant" => "ข้อมูล IP Adress และค่าคงที่ของระบบ",
+        "URLSetting" => "ข้อมูล API URL ที่เกี่ยวข้อง",
+        _ => "โรงงาน/บริษัท"
+    };
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TBR</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <aside class="app-sidebar">
+        <a class="brand" asp-controller="Dashboard" asp-action="Index" aria-label="หน้าแรก">
+            @await Component.InvokeAsync("FactoryBrandLogo", new { mainPage = true })
+            <span class="brand-caption">WEIGHING SYSTEM</span>
+        </a>
+        <nav aria-label="เมนูหลัก">
+            <a class="sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index" aria-current="@(currentController == "Dashboard" ? "page" : null)"><span class="factory-icon" aria-hidden="true">▦</span> Dashboard</a>
+            @{
+                var menuGroups = new[]
+                {
+                    (Title: "ข้อมูลบริษัท", Items: new[]
+                    {
+                        (Controller: "Factory", Label: "โรงงาน/บริษัท", Icon: "▦", Available: true)
+                    }),
+                    (Title: "ข้อมูลลูกค้า/บริษัทขนส่ง", Items: new[]
+                    {
+                        (Controller: "Customer", Label: "ลูกค้า/บริษัทผู้ส่ง", Icon: "♙", Available: true),
+                        (Controller: "TransportCompany", Label: "บริษัทขนส่ง", Icon: "▤", Available: true),
+                        (Controller: "Province", Label: "จังหวัด", Icon: "⌖", Available: true),
+                        (Controller: "TruckType", Label: "ประเภทรถ", Icon: "▱", Available: true),
+                        (Controller: "LicensePlate", Label: "ทะเบียนรถ", Icon: "▣", Available: true)
+                    }),
+                    (Title: "ข้อมูลสินค้า", Items: new[]
+                    {
+                        (Controller: "ProductType", Label: "ประเภทสินค้า", Icon: "◇", Available: true),
+                        (Controller: "Product", Label: "ทะเบียนสินค้า", Icon: "▧", Available: true)
+                    }),
+                    (Title: "ตั้งค่า", Items: new[]
+                    {
+                        (Controller: "Constant", Label: "ข้อมูล IP Adress และค่าคงที่ของระบบ", Icon: "⚙", Available: true),
+                        (Controller: "URLSetting", Label: "ข้อมูล API URL ที่เกี่ยวข้อง", Icon: "↗", Available: true),
+                        (Controller: "ProgramType", Label: "ประเภทโปรแกรมชั่ง", Icon: "▣", Available: true),
+                        (Controller: "WeightType", Label: "ประเภทการชั่ง", Icon: "⚖", Available: true),
+                        (Controller: "Notification", Label: "การแจ้งเตือน", Icon: "♧", Available: true)
+                    }),
+                    (Title: "ระบบรักษาความปลอดภัย", Items: new[]
+                    {
+                        (Controller: "User", Label: "ผู้ใช้งาน", Icon: "♙", Available: true),
+                        (Controller: "Role", Label: "กลุ่มผู้ใช้งาน", Icon: "▣", Available: true),
+                        (Controller: "Permission", Label: "กำหนดสิทธิ์", Icon: "⚙", Available: true)
+                    })
+                };
+            }
+            @foreach (var group in menuGroups)
+            {
+                <details class="sidebar-group" open="@(group.Items.Any(item => item.Controller == currentController))">
+                    <summary>@group.Title<span class="sidebar-chevron" aria-hidden="true">›</span></summary>
+                    <div class="sidebar-group-links">
+                        @foreach (var item in group.Items)
+                        {
+                            @if (item.Available)
+                            {
+                                <a class="sidebar-link @(currentController == item.Controller ? "active" : "")" asp-controller="@item.Controller" asp-action="Index" aria-current="@(currentController == item.Controller ? "page" : null)">
+                                    <span class="factory-icon" aria-hidden="true">@item.Icon</span><span>@item.Label</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="sidebar-link sidebar-link-unavailable" aria-disabled="true">
+                                    <span class="factory-icon" aria-hidden="true">@item.Icon</span><span>@item.Label<small>ยังไม่พร้อมใช้งาน</small></span>
+                                </span>
+                            }
+                        }
+                    </div>
+                </details>
+            }
+        </nav>
+        <div class="sidebar-footer"><div><span class="workspace-dot"></span>Local workspace</div><small>ระบบชั่งน้ำหนักรถบรรทุก</small></div>
+    </aside>
+    <div class="app-shell">
+        <header class="app-topbar">
+            <div class="d-flex align-items-center gap-3"><span class="text-muted">@(menuGroups.FirstOrDefault(group => group.Items.Any(item => item.Controller == currentController)).Title ?? "Dashboard")</span><span class="breadcrumb-divider">/</span><span>@sectionTitle</span></div>
+            <div class="d-flex align-items-center gap-2">
+                <partial name="_LanguageSelector" />
+                <span><span>บัญชี</span>: <span data-localize="false">@User.Identity?.Name</span></span>
+                <span aria-hidden="true">/</span>
+                <small class="text-muted"><span>สิทธิ์</span>: <span data-localize="false">@User.FindFirst(thaibev.Data.UserAuthentication.RoleDescriptionClaim)?.Value</span></small>
+                <form id="sessionLogoutForm" asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="btn btn-outline-secondary">ออกจากระบบ</button></form>
+            </div>
+        </header>
+        <main class="app-content @(useLargerPageFont ? "larger-page-font" : "")" id="main-content" data-page-action="@currentAction">@RenderBody()</main>
+    </div>
+    <div class="modal fade" id="sessionModal" tabindex="-1" aria-labelledby="sessionModalTitle" data-bs-backdrop="static" data-bs-keyboard="false"
+         data-status-url="@Url.Action("SessionStatus", "Account")" data-renew-url="@Url.Action("RenewSession", "Account")" data-login-url="@Url.Action("Login", "Account")">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header"><h2 id="sessionModalTitle" class="modal-title fs-5">การเข้าสู่ระบบใกล้หมดอายุ</h2></div>
+            <div class="modal-body">
+                <p>ต้องการต่ออายุการเข้าสู่ระบบเพื่อกรอกข้อมูลต่อหรือไม่?</p>
+                <p>เหลือเวลา <strong id="sessionCountdown" role="timer">--:--</strong> ก่อนออกจากระบบอัตโนมัติ</p>
+                <div id="sessionError" class="text-danger" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="sessionDecline" type="button" class="btn btn-outline-secondary">ไม่ต่อ / ออกจากระบบ</button>
+                <button id="sessionRenew" type="button" class="btn btn-primary">ต่ออายุการเข้าสู่ระบบ</button>
+            </div>
+        </div></div>
+    </div>
+    <script src="~/js/localization.js" asp-append-version="true" data-mapping-url="@Url.Content("~/localization/th-en.json")"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+
+
+

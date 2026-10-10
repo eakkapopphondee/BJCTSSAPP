@@ -1,0 +1,42 @@
+@model thaibev.Models.CustomerViewModel
+<form id="customerForm" class="card">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-2">
+            <div class="col-12 col-md-4"><label asp-for="CustomerCode" class="form-label">รหัสลูกค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="CustomerCode" class="form-control" maxlength="20" required /></div>
+            <div class="col-12 col-md-8"><label asp-for="CustomerName" class="form-label">ชื่อลูกค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="CustomerName" class="form-control" maxlength="250" required /></div>
+            <div class="col-12 col-md-8"><label asp-for="Address1" class="form-label">ที่อยู่ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="Address1" class="form-control" maxlength="200" required /></div>
+            <div class="col-12 col-md-4"><label asp-for="PhoneNumber" class="form-label">เบอร์โทรศัพท์ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="PhoneNumber" class="form-control" type="tel" maxlength="200" required /></div>
+            <div class="col-12 col-md-4"><label asp-for="SAPCode" class="form-label">รหัสลูกค้าในระบบ SAP</label><input asp-for="SAPCode" class="form-control" maxlength="50" /></div>
+            <div class="col-12 col-md-8"><label asp-for="SAPDesc" class="form-label">ชื่อลูกค้าในระบบ SAP</label><input asp-for="SAPDesc" class="form-control" maxlength="250" /></div>
+            <div class="col-12"><label asp-for="Remark" class="form-label">หมายเหตุ</label><textarea asp-for="Remark" class="form-control" maxlength="1024" rows="2"></textarea></div>
+            <div class="col-12 col-md-4 d-flex align-items-center"><div class="form-check"><input id="MolasFlag" name="MolasFlag" type="checkbox" class="form-check-input" checked="@(Model.MolasFlag == "Y")" /><label for="MolasFlag" class="form-check-label">ลูกค้าผู้ผลิตกากน้ำตาล</label></div></div>
+            <div class="col-12 col-md-4 d-flex align-items-center"><div class="form-check"><input id="TBRFlag" name="TBRFlag" type="checkbox" class="form-check-input" checked="@(Model.TBRFlag == "Y")" /><label for="TBRFlag" class="form-check-label">ลูกค้าของ TBR</label></div></div>
+            <div class="col-12 col-md-4 d-flex align-items-center"><div class="form-check"><input id="DefaultFlag" name="DefaultFlag" type="checkbox" class="form-check-input" checked="@(Model.DefaultFlag == "Y")" /><label for="DefaultFlag" class="form-check-label">กำหนดเป็นลูกค้า Default</label></div></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                <div class="col-12 col-md-4"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option>
+                @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus">@Model.DataStatus</option> }
+            </select></div>
+            }
+            else
+            {
+                <input asp-for="DataStatus" type="hidden" value="A" />
+            }
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Customer" asp-action="Index">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert" style="white-space:pre-line"></div>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">บันทึกข้อมูลลูกค้าเรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="Customer" asp-action="Index">กลับไปรายการลูกค้า</a></div>
+    </div></div>
+</div>

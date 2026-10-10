@@ -1,0 +1,69 @@
+@model thaibev.Models.NotificationViewModel
+<form id="notificationForm" class="card">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <div class="card-body">
+        <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
+        <div class="row g-2">
+            <div class="col-12 col-md-6"><label asp-for="NotificationNo" class="form-label">เลขที่การแจ้งเตือน <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="NotificationNo" class="form-control" type="text" maxlength="20" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="NotificationDate" class="form-label">วันที่การแจ้งเตือน <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="NotificationDate" class="form-control" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm:ss.fff}" step="any" min="1753-01-01T00:00" max="9999-12-31T23:59:59.997" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="NotificationName" class="form-label">ชื่อการแจ้งเตือน <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="NotificationName" class="form-control" type="text" maxlength="150" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="NotificationSubj" class="form-label">หัวข้อการแจ้งเตือน <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="NotificationSubj" class="form-control" type="text" maxlength="200" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="NotificationMsg" class="form-label">ข้อความ</label><textarea asp-for="NotificationMsg" class="form-control" rows="4"></textarea></div>
+            <div class="col-12 col-md-6"><label asp-for="TriggerType" class="form-label">TriggerType <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="TriggerType" class="form-select" required><option value="">เลือก TriggerType</option><option value="D">Daily</option><option value="W">Weekly</option></select></div>
+            <div class="col-12 col-md-6"><label asp-for="StartDate" class="form-label">วันที่เริ่มต้น <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="StartDate" class="form-control" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm:ss.fff}" step="any" min="1753-01-01T00:00" max="9999-12-31T23:59:59.997" required /></div>
+            <div class="col-12 col-md-6"><label asp-for="NotificationTime" class="form-label">เวลาการแจ้งเตือน <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="NotificationTime" class="form-control" type="time" value="@(Model.NotificationTime?.ToString(@"hh\:mm\:ss\.fff"))" data-original-time="@(Model.NotificationTime?.ToString(@"hh\:mm\:ss\.fffffff"))" step="any" required /></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
+            {
+                @* <div class="col-12 col-md-6"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">A - Active</option><option value="C">C - Cancel</option></select></div> *@
+                <div class="col-12 col-md-4"><label class="form-label" for="DataStatus">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label>
+                    <select class="form-select" id="DataStatus" name="DataStatus" required><option value="A" selected="@(Model.DataStatus == "A")">ใช้งานอยู่</option><option value="C" selected="@(Model.DataStatus == "C")">ยกเลิก</option>
+                        @if (Model.DataStatus is not ("A" or "C")) { <option value="@Model.DataStatus" selected>@Model.DataStatus</option> }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input asp-for="DataStatus" type="hidden" value="A" />
+            }
+        </div>
+        @foreach (var group in new[] { (Key: "to", Title: "ผู้รับ To", Items: Model.ToRecipients), (Key: "cc", Title: "ผู้รับ CC", Items: Model.CcRecipients) })
+        {
+            <section class="mt-4 recipient-section" data-group="@group.Key">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="fs-5 mb-0">@group.Title</h2>
+                    <button type="button" class="btn btn-outline-primary add-recipient">＋ เพิ่มผู้รับ</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table recipient-table" aria-label="@group.Title">
+                        <thead><tr><th>อีเมล <span class="text-danger" aria-hidden="true">*</span></th><th>ชื่อเจ้าของอีเมล <span class="text-danger" aria-hidden="true">*</span></th><th>จัดการ</th></tr></thead>
+                        <tbody>
+                            @foreach (var recipient in group.Items)
+                            {
+                                <tr data-id="@recipient.Id">
+                                    <td><input type="email" class="form-control recipient-email" value="@recipient.Email" maxlength="200" required aria-label="อีเมล (จำเป็นต้องกรอก)" /></td>
+                                    <td><input type="text" class="form-control recipient-owner" value="@recipient.Owner" maxlength="200" required aria-label="ชื่อเจ้าของอีเมล (จำเป็นต้องกรอก)" /></td>
+                                    <td><button type="button" class="btn btn-outline-danger remove-recipient"><span aria-hidden="true">×</span> ลบ</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small recipient-empty">กดเพิ่มผู้รับเพื่อเพิ่มรายการ</p>
+            </section>
+        }
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Notification" asp-action="Index">ยกเลิก</a>
+        <button id="btnSave" type="submit" class="btn btn-primary">บันทึก</button>
+    </div>
+</form>
+<div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
+        <div class="modal-body">บันทึกข้อมูลการแจ้งเตือนของระบบเรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="Notification" asp-action="Index">กลับไปรายการการแจ้งเตือนของระบบ</a></div>
+    </div></div>
+</div>
+

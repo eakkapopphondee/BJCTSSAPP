@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TBR</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-page">
+    <main class="card auth-card">
+        <div class="auth-language-toolbar">
+            <partial name="_LanguageSelector" />
+        </div>
+        <div class="auth-brand">
+            @await Component.InvokeAsync("FactoryBrandLogo")
+            <div class="brand-caption text-muted">WEIGHING SYSTEM</div>
+        </div>
+        @RenderBody()
+    </main>
+    <script src="~/js/localization.js" asp-append-version="true" data-mapping-url="@Url.Content("~/localization/th-en.json")"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

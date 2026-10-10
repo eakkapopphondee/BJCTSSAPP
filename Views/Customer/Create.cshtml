@@ -1,0 +1,7 @@
+﻿@model thaibev.Models.CustomerViewModel
+@{ ViewData["Title"] = "เพิ่มลูกค้า"; }
+<div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <h1 class="mb-0">เพิ่มลูกค้า</h1><a class="btn btn-outline-secondary" asp-action="Index">กลับไปรายการลูกค้า</a>
+</div>
+<partial name="_Form" model="Model" />
+@section Scripts { <partial name="_FormScripts" /> }

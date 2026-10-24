@@ -26,8 +26,8 @@
     </div>
     <div class="table-responsive">
         <table id="customerTable" class="table table-hover factory-table customer-table mb-0" aria-label="รายการลูกค้า">
-            <thead><tr><th>รหัส / ชื่อลูกค้า</th><th>ที่อยู่ / ติดต่อ</th><th>หมายเหตุ</th><th>ผู้ผลิตกากน้ำตาล</th><th>ลูกค้าของ TBR</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-            <tbody><tr><td colspan="7" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+            <thead><tr><th>รหัสลูกค้า/บริษัทผู้ส่ง</th><th>ชื่อลูกค้า/บริษัทผู้ส่ง</th><th>ที่อยู่</th><th>โทรศัพท์</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="5" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
     <div class="table-footer">
@@ -92,23 +92,21 @@
             visibleRows = [];
             $('#customerCount').text('—');
             $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
-            $('#customerTable tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#customerTable tbody').html('<tr><td colspan="5" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
             $('#pagination, #paginationSummary').empty();
             message('ไม่สามารถโหลดข้อมูลลูกค้าได้ กรุณาลองใหม่');
         }).always(() => $('#btnSearch').prop('disabled', false));
     }
     function renderRows(rows) {
         if (!rows.length) {
-            $('#customerTable tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">ไม่พบข้อมูลลูกค้า</td></tr>');
+            $('#customerTable tbody').html('<tr><td colspan="5" class="text-center text-muted py-4">ไม่พบข้อมูลลูกค้า</td></tr>');
             return;
         }
         $('#customerTable tbody').html(rows.map(row => `<tr>
-            <td><div class="factory-code">${display(row.customerCode)}</div><div class="cell-title">${display(row.customerName)}</div></td>
-            <td><div class="cell-title">${display(row.address1)}</div><div class="cell-detail">${display(row.phoneNumber)}</div></td>
-            <td><div class="customer-remark">${display(row.remark)}</div></td>
-            <td><span class="program-badge">${display(row.molasFlag)}</span></td>
-            <td><span class="program-badge">${display(row.tbrFlag)}</span></td>
-            <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
+            <td>${display(row.customerCode)}</td>
+            <td>${display(row.customerName)}</td>
+            <td>${display(row.address1)}</td>
+            <td>${display(row.phoneNumber)}</td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Customer")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
     }
@@ -124,7 +122,9 @@
             .catch(() => message("ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่"))
             .finally(() => button.prop("disabled", false));
     });
-    $('#btnTemplate').on('click', () => ExcelExport.download(importFields, [], 'customer-import-template.xlsx', { textColumns: true }));
+    $('#btnTemplate').on('click', () => ExcelExport.download(importFields, [], 'customer-import-template.xlsx', {
+        textColumns: true, requiredHeaders: ['CustomerCode', 'CustomerName', 'Address1', 'PhoneNumber']
+    }));
     $('#btnImport').on('click', () => $('#importFile').trigger('click'));
     $('#importFile').on('change', function () {
         const file = this.files?.[0];

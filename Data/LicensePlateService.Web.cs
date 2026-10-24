@@ -20,7 +20,8 @@ public sealed partial class LicensePlateService
         LEFT JOIN {TruckTypeTable} tt ON tt.[ID] = l.[TruckTypeID]
         """;
     private const string Columns = """
-        l.[ID], l.[PlateNumber], l.[PlateProvinceID], l.[TrailerNumber], l.[TrailerProviceID],
+        l.[ID], l.[PlateLetterSection], l.[PlateNumberSection], l.[PlateNumber], l.[PlateProvinceID],
+        l.[TrailerLetterSection], l.[TrailerNumberSection], l.[TrailerNumber], l.[TrailerProviceID],
         l.[TransportCompanyID], l.[DataStatus], l.[CreateUserID], l.[CreateUserDate], l.[UpdateUserID], l.[UpdateUserDate],
         p.[ProvinceName] AS PlateProvinceName, t.[ProvinceName] AS TrailerProvinceName,
         c.[TransportCompanyName], l.[TruckTypeID], l.[QRCode], tt.[TruckTypeName]
@@ -126,8 +127,11 @@ public sealed partial class LicensePlateService
     {
         TruckTypeID = row.Field<int>("TruckTypeID"), QRCode = row.Field<string>("QRCode"),
         TruckTypeName = row.Field<string>("TruckTypeName"),
-        Id = row.Field<int>("ID"), PlateNumber = row.Field<string>("PlateNumber") ?? string.Empty,
-        PlateProvinceID = row.Field<int>("PlateProvinceID"), TrailerNumber = row.Field<string>("TrailerNumber") ?? string.Empty,
+        Id = row.Field<int>("ID"), PlateLetterSection = row.Field<string>("PlateLetterSection") ?? string.Empty,
+        PlateNumberSection = row.Field<string>("PlateNumberSection") ?? string.Empty,
+        PlateNumber = row.Field<string>("PlateNumber") ?? string.Empty,
+        PlateProvinceID = row.Field<int>("PlateProvinceID"), TrailerLetterSection = row.Field<string>("TrailerLetterSection"),
+        TrailerNumberSection = row.Field<string>("TrailerNumberSection"), TrailerNumber = row.Field<string>("TrailerNumber") ?? string.Empty,
         TrailerProviceID = row.Field<int>("TrailerProviceID"), TransportCompanyID = row.Field<int?>("TransportCompanyID"),
         DataStatus = row.Field<string>("DataStatus") ?? string.Empty, CreateUserID = row.Field<int>("CreateUserID"),
         CreateUserDate = row.Field<DateTime>("CreateUserDate"), UpdateUserID = row.Field<int?>("UpdateUserID"),

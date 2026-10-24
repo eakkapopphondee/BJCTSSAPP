@@ -18,7 +18,7 @@
     </div>
     <div class="table-responsive">
         <table id="transportCompanyTable" class="table table-hover factory-table master-table master-table-5 mb-0" aria-label="รายการบริษัทขนส่ง">
-            <thead><tr><th>รหัส / ชื่อบริษัทขนส่ง</th><th>ที่อยู่ / ติดต่อ</th><th>หมายเหตุ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <thead><tr><th>รหัสบริษัทขนส่ง</th><th>ชื่อบริษัทขนส่ง</th><th>ที่อยู่</th><th>โทรศัพท์</th><th>จัดการ</th></tr></thead>
             <tbody><tr><td colspan="5" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
@@ -79,10 +79,10 @@
             return;
         }
         $('#transportCompanyTable tbody').html(rows.map(row => `<tr>
-            <td><div class="factory-code">${display(row.transportCompanyCode)}</div><div class="cell-title">${display(row.transportCompanyName)}</div></td>
-            <td><div class="cell-title">${display(row.address1)}</div><div class="cell-detail">${display(row.phoneNumber)}</div></td>
-            <td><div class="customer-remark">${display(row.remark)}</div></td>
-            <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
+            <td>${display(row.transportCompanyCode)}</td>
+            <td>${display(row.transportCompanyName)}</td>
+            <td>${display(row.address1)}</td>
+            <td>${display(row.phoneNumber)}</td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "TransportCompany")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
     }

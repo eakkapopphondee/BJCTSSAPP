@@ -55,7 +55,10 @@ public sealed partial class ProvinceService(ISqlDataAccess dataAccess, SqlObject
     {
         var extra = string.Concat(entity.LookupFields.Select(field => $", [{field}]"));
         var table = await dataAccess.SelectAsync($"""
-            SELECT {entity.ColumnList}{extra} {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
+            SELECT {entity.ColumnList}{extra},
+                (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssProvince].[CreateUserID]) AS [CreateUserName],
+                (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssProvince].[UpdateUserID]) AS [UpdateUserName]
+            {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
             ORDER BY [ID] DESC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
@@ -80,7 +83,13 @@ public sealed partial class ProvinceService(ISqlDataAccess dataAccess, SqlObject
         if (pagination is not null) metadata["Pagination"] = pagination;
         if (entity.LookupFields.Length > 0)
             metadata["Lookups"] = rows.Select(row => row.Where(pair => pair.Key == "ID" || entity.LookupFields.Contains(pair.Key)).ToDictionary());
-        var records = rows.Select(row => entity.Columns.ToDictionary(column => column.Name, column => row[column.Name]));
+        var records = rows.Select(row =>
+        {
+            var record = entity.Columns.ToDictionary(column => column.Name, column => row[column.Name]);
+            record["CreateUserName"] = row.GetValueOrDefault("CreateUserName");
+            record["UpdateUserName"] = row.GetValueOrDefault("UpdateUserName");
+            return record;
+        });
         return ApiResponse.Success(records.ToArray(), metadata.Count > 0 ? metadata : null);
     }
 

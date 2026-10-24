@@ -22,7 +22,7 @@
     </div>
     <div class="table-responsive">
         <table id="licensePlateTable" class="table table-hover factory-table master-table license-plate-table mb-0" aria-label="รายการทะเบียนรถ">
-            <thead><tr><th>ทะเบียนรถ</th><th>จังหวัดรถ</th><th>ทะเบียนพ่วง</th><th>จังหวัดพ่วง</th><th>บริษัทขนส่ง</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <thead><tr><th>ทะเบียนรถ</th><th>จังหวัด</th><th>ทะเบียนพ่วง</th><th>จังหวัด</th><th>บริษัทขนส่ง</th><th>สถานะข้อมูล</th><th>จัดการ</th></tr></thead>
             <tbody><tr><td colspan="7" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
@@ -116,11 +116,11 @@
             return;
         }
         $('#licensePlateTable tbody').html(rows.map(row => `<tr>
-            <td><div class="cell-title">${display(row.plateNumber)}</div></td>
-            <td>${display(row.plateProvinceName ?? 'ไม่พบจังหวัด')}</td>
-            <td><div class="cell-title">${display(row.trailerNumber)}</div></td>
-            <td>${display(row.trailerProvinceName ?? 'ไม่พบจังหวัด')}</td>
-            <td>${display(row.transportCompanyName ?? (row.transportCompanyID == null ? '—' : 'ไม่พบบริษัทขนส่ง'))}</td>
+            <td>${display(row.plateNumber)}</td>
+            <td>${display(row.plateProvinceName)}</td>
+            <td>${display(row.trailerNumber)}</td>
+            <td>${display(row.trailerProvinceName)}</td>
+            <td>${display(row.transportCompanyName)}</td>
             <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
             <td><div class="row-actions flex-wrap"><button type="button" class="btn btn-sm btn-outline-primary btn-print-qr" data-id="${Number(row.id)}">พิมพ์ QR Code</button><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Index", "LicensePlateProduct")?id=${encodeURIComponent(row.id)}">เพิ่มรายการสินค้า</a><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "LicensePlate")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
@@ -131,7 +131,7 @@
         $('#pagination').html(`<li class="page-item ${page <= 1 ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page - 1}" aria-label="หน้าก่อนหน้า" ${page <= 1 ? 'disabled' : ''}>‹</button></li><li class="page-position">${page} / ${totalPages}</li><li class="page-item ${page >= totalPages ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page + 1}" aria-label="หน้าถัดไป" ${page >= totalPages ? 'disabled' : ''}>›</button></li>`);
     }
     $('#btnExport').on('click', () => {
-        const fields = ['id', 'plateNumber', 'plateProvinceName', 'trailerNumber', 'trailerProvinceName', 'transportCompanyName', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
+        const fields = ['id', 'plateLetterSection', 'plateNumberSection', 'plateNumber', 'plateProvinceID', 'plateProvinceName', 'trailerLetterSection', 'trailerNumberSection', 'trailerNumber', 'trailerProviceID', 'trailerProvinceName', 'transportCompanyID', 'transportCompanyName', 'truckTypeID', 'truckTypeName', 'qrCode', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
         const button = $("#btnExport").prop("disabled", true);
         ExcelExport.downloadSearch(fields, '@Url.Content("~/v1/Setup/LicensePlate/Search")', { TextSearch: $('#searchBox').val(), DataStatus: $('#dataStatusFilter').val() }, `licensePlate.xlsx`)
             .catch(() => message("ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่"))

@@ -9,6 +9,7 @@
         "Role" => "กลุ่มผู้ใช้งาน",
         "Permission" => "กำหนดสิทธิ์",
         "Dashboard" => "Dashboard",
+        "ApiLogReport" => "รายงานแสดงผลการส่ง API ให้กับระบบ TBR",
         "Customer" => "ลูกค้า/บริษัทผู้ส่ง",
         "TransportCompany" => "บริษัทขนส่ง",
         "TruckType" => "ประเภทรถ",
@@ -17,7 +18,7 @@
         "Notification" => "การแจ้งเตือน",
         "Province" => "จังหวัด",
         "LicensePlate" => "ทะเบียนรถ",
-        "ProductType" => "ประเภทสินค้า",
+        "ProductType" => "กลุ่มสินค้า",
         "Product" => "ทะเบียนสินค้า",
         "Constant" => "ข้อมูล IP Adress และค่าคงที่ของระบบ",
         "URLSetting" => "ข้อมูล API URL ที่เกี่ยวข้อง",
@@ -31,6 +32,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TBR</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/fontawesome.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/solid.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
@@ -40,40 +43,45 @@
             <span class="brand-caption">WEIGHING SYSTEM</span>
         </a>
         <nav aria-label="เมนูหลัก">
-            <a class="sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index" aria-current="@(currentController == "Dashboard" ? "page" : null)"><span class="factory-icon" aria-hidden="true">▦</span> Dashboard</a>
+            @* <a class="sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index" aria-current="@(currentController == "Dashboard" ? "page" : null)"><span class="factory-icon" aria-hidden="true">▦</span> Dashboard</a> *@
             @{
                 var menuGroups = new[]
                 {
+                    (Title: "Dashboard และรายงาน", Items: new[]
+                    {
+                        (Controller: "Dashboard", Label: "Dashboard แสดงจน.แผนการชั่ง นน.ที่ชั่งประจำวัน", Icon: "fa-chart-column", Available: false),
+                        (Controller: "ApiLogReport", Label: "รายงานแสดงผลการส่ง API ให้กับระบบ TBR", Icon: "fa-cloud-arrow-up", Available: true)
+                    }),
                     (Title: "ข้อมูลบริษัท", Items: new[]
                     {
-                        (Controller: "Factory", Label: "โรงงาน/บริษัท", Icon: "▦", Available: true)
+                        (Controller: "Factory", Label: "โรงงาน/บริษัท", Icon: "fa-city", Available: true)
                     }),
                     (Title: "ข้อมูลลูกค้า/บริษัทขนส่ง", Items: new[]
                     {
-                        (Controller: "Customer", Label: "ลูกค้า/บริษัทผู้ส่ง", Icon: "♙", Available: true),
-                        (Controller: "TransportCompany", Label: "บริษัทขนส่ง", Icon: "▤", Available: true),
-                        (Controller: "Province", Label: "จังหวัด", Icon: "⌖", Available: true),
-                        (Controller: "TruckType", Label: "ประเภทรถ", Icon: "▱", Available: true),
-                        (Controller: "LicensePlate", Label: "ทะเบียนรถ", Icon: "▣", Available: true)
+                        (Controller: "Customer", Label: "ลูกค้า/บริษัทผู้ส่ง", Icon: "fa-building-user", Available: true),
+                        (Controller: "TransportCompany", Label: "บริษัทขนส่ง", Icon: "fa-truck-arrow-right", Available: true),
+                        (Controller: "Province", Label: "จังหวัด", Icon: "fa-map-location-dot", Available: true),
+                        (Controller: "TruckType", Label: "ประเภทรถ", Icon: "fa-folder-tree", Available: true),
+                        (Controller: "LicensePlate", Label: "ทะเบียนรถ", Icon: "fa-tachograph-digital", Available: true)
                     }),
                     (Title: "ข้อมูลสินค้า", Items: new[]
                     {
-                        (Controller: "ProductType", Label: "ประเภทสินค้า", Icon: "◇", Available: true),
-                        (Controller: "Product", Label: "ทะเบียนสินค้า", Icon: "▧", Available: true)
+                        (Controller: "ProductType", Label: "กลุ่มสินค้า", Icon: "fa-table-list", Available: true),
+                        (Controller: "Product", Label: "ทะเบียนสินค้า", Icon: "fa-wine-bottle", Available: true)
                     }),
                     (Title: "ตั้งค่า", Items: new[]
                     {
-                        (Controller: "Constant", Label: "ข้อมูล IP Adress และค่าคงที่ของระบบ", Icon: "⚙", Available: true),
-                        (Controller: "URLSetting", Label: "ข้อมูล API URL ที่เกี่ยวข้อง", Icon: "↗", Available: true),
-                        (Controller: "ProgramType", Label: "ประเภทโปรแกรมชั่ง", Icon: "▣", Available: true),
-                        (Controller: "WeightType", Label: "ประเภทการชั่ง", Icon: "⚖", Available: true),
-                        (Controller: "Notification", Label: "การแจ้งเตือน", Icon: "♧", Available: true)
+                        (Controller: "Constant", Label: "ข้อมูล IP Adress และค่าคงที่ของระบบ", Icon: "fa-network-wired", Available: true),
+                        (Controller: "URLSetting", Label: "ข้อมูล API URL ที่เกี่ยวข้อง", Icon: "fa-globe", Available: true),
+                        (Controller: "ProgramType", Label: "ประเภทโปรแกรมชั่ง", Icon: "fa-file-code", Available: true),
+                        (Controller: "WeightType", Label: "ประเภทการชั่ง", Icon: "fa-down-left-and-up-right-to-center", Available: true),
+                        (Controller: "Notification", Label: "การแจ้งเตือน", Icon: "fa-bell", Available: true)
                     }),
                     (Title: "ระบบรักษาความปลอดภัย", Items: new[]
                     {
-                        (Controller: "User", Label: "ผู้ใช้งาน", Icon: "♙", Available: true),
-                        (Controller: "Role", Label: "กลุ่มผู้ใช้งาน", Icon: "▣", Available: true),
-                        (Controller: "Permission", Label: "กำหนดสิทธิ์", Icon: "⚙", Available: true)
+                        (Controller: "User", Label: "ข้อมูลผู้ใช้งาน", Icon: "fa-user-gear", Available: true),
+                        (Controller: "Role", Label: "กลุ่มผู้ใช้งาน", Icon: "fa-users-gear", Available: true),
+                        (Controller: "Permission", Label: "กำหนดสิทธิ์", Icon: "fa-unlock-keyhole", Available: true)
                     })
                 };
             }
@@ -87,13 +95,13 @@
                             @if (item.Available)
                             {
                                 <a class="sidebar-link @(currentController == item.Controller ? "active" : "")" asp-controller="@item.Controller" asp-action="Index" aria-current="@(currentController == item.Controller ? "page" : null)">
-                                    <span class="factory-icon" aria-hidden="true">@item.Icon</span><span>@item.Label</span>
+                                    <i class="factory-icon fa-solid @item.Icon" aria-hidden="true"></i><span>@item.Label</span>
                                 </a>
                             }
                             else
                             {
                                 <span class="sidebar-link sidebar-link-unavailable" aria-disabled="true">
-                                    <span class="factory-icon" aria-hidden="true">@item.Icon</span><span>@item.Label<small>ยังไม่พร้อมใช้งาน</small></span>
+                                    <i class="factory-icon fa-solid @item.Icon" aria-hidden="true"></i><span>@item.Label<small>ยังไม่พร้อมใช้งาน</small></span>
                                 </span>
                             }
                         }

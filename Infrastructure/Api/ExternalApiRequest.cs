@@ -36,8 +36,9 @@ public sealed record ExternalApiRequest(
             if (!fields.TryGetValue("RequestUserID", out var userId)
                 || userId.ValueKind != JsonValueKind.Number || !userId.TryGetInt32(out var parsedId))
                 throw new ValidationException("RequestUserID must be an integer.");
-            if (!fields.TryGetValue("RequestDate", out var date)
-                || date.ValueKind != JsonValueKind.String || !date.TryGetDateTime(out var parsedDate))
+            var parsedDate = syncDate;
+            if (fields.TryGetValue("RequestDate", out var date)
+                && (date.ValueKind != JsonValueKind.String || !date.TryGetDateTime(out parsedDate)))
                 throw new ValidationException("RequestDate must be a datetime string.");
             InputValidation.ValidateSqlDateTime(parsedDate, "RequestDate");
             return new(reference, parsedDate, parsedId, userName, body, syncDate);
@@ -46,7 +47,7 @@ public sealed record ExternalApiRequest(
 
     private static ExternalApiRequest ReadUnvalidatedMetadata(string body, DateTime syncDate)
     {
-        if (string.IsNullOrWhiteSpace(body)) return new(null, null, null, null, body, syncDate);
+        if (string.IsNullOrWhiteSpace(body)) return new(null, syncDate, null, null, body, syncDate);
         try
         {
             using var document = JsonDocument.Parse(body);
@@ -63,8 +64,8 @@ public sealed record ExternalApiRequest(
             var userName = Text(fields, "RequsetUserName", 100);
             int? userId = fields.TryGetValue("RequestUserID", out var idValue)
                 && idValue.ValueKind == JsonValueKind.Number && idValue.TryGetInt32(out var parsedId) ? parsedId : null;
-            DateTime? date = fields.TryGetValue("RequestDate", out var dateValue)
-                && dateValue.ValueKind == JsonValueKind.String && dateValue.TryGetDateTime(out var parsedDate)
+            DateTime? date = !fields.TryGetValue("RequestDate", out var dateValue) ? syncDate
+                : dateValue.ValueKind == JsonValueKind.String && dateValue.TryGetDateTime(out var parsedDate)
                 && parsedDate >= new DateTime(1753, 1, 1)
                 && parsedDate <= new DateTime(9999, 12, 31, 23, 59, 59, 997) ? parsedDate : null;
             return new(reference, date, userId, userName, body, syncDate);

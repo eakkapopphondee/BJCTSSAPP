@@ -27,7 +27,7 @@ public sealed class ProductViewModel : AuditedViewModel, IValidatableObject
 
 
 
-    [Range(1, int.MaxValue, ErrorMessage = "กรุณาเลือกประเภทสินค้า")]
+    [Range(1, int.MaxValue, ErrorMessage = "กรุณาเลือกกลุ่มสินค้า")]
     public int ProductTypeID { get; set; }
     [Range(typeof(decimal), "-999999999.999", "999999999.999")]
     public decimal UnitPrice { get; set; }

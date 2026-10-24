@@ -17,9 +17,9 @@
         <button id="btnExport" type="button" class="export-button" disabled title="ส่งออกผลค้นหาทั้งหมด">↓ ส่งออก Excel (ผลค้นหาทั้งหมด)</button>
     </div>
     <div class="table-responsive">
-        <table id="roleTable" class="table table-hover factory-table master-table master-table-3 mb-0" aria-label="รายการกลุ่มผู้ใช้งาน">
-            <thead><tr><th>รหัส / ชื่อกลุ่มผู้ใช้งาน</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-            <tbody><tr><td colspan="3" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+        <table id="roleTable" class="table table-hover factory-table master-table master-table-3 role-search-table mb-0" aria-label="รายการกลุ่มผู้ใช้งาน">
+            <thead><tr><th>รหัสกลุ่มผู้ใช้งาน</th><th>รายละเอียด</th><th>สถานะข้อมูล</th><th>ผู้สร้างข้อมูล</th><th>วันที่สร้าง</th><th>ผู้ปรับปรุง</th><th>วันที่ปรับปรุง</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="8" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
     <div class="table-footer">
@@ -68,19 +68,24 @@
             visibleRows = [];
             $('#roleCount').text('—');
             $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
-            $('#roleTable tbody').html('<tr><td colspan="3" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#roleTable tbody').html('<tr><td colspan="8" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
             $('#pagination, #paginationSummary').empty();
             message('ไม่สามารถโหลดกลุ่มผู้ใช้งานได้ กรุณาลองใหม่');
         }).always(() => $('#btnSearch').prop('disabled', false));
     }
     function renderRows(rows) {
         if (!rows.length) {
-            $('#roleTable tbody').html('<tr><td colspan="3" class="text-center text-muted py-4">ไม่พบกลุ่มผู้ใช้งาน</td></tr>');
+            $('#roleTable tbody').html('<tr><td colspan="8" class="text-center text-muted py-4">ไม่พบกลุ่มผู้ใช้งาน</td></tr>');
             return;
         }
         $('#roleTable tbody').html(rows.map(row => `<tr>
-            <td><div class="factory-code">${display(row.roleCode)}</div><div class="cell-title">${display(row.roleDescription)}</div></td>
+            <td>${display(row.roleCode)}</td>
+            <td>${display(row.roleDescription)}</td>
             <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
+            <td>${display(row.createUserName)}</td>
+            <td>${display(row.createUserDate?.replace?.('T', ' '))}</td>
+            <td>${display(row.updateUserName)}</td>
+            <td>${display(row.updateUserDate?.replace?.('T', ' '))}</td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Role")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
     }

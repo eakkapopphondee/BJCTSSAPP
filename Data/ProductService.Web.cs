@@ -47,7 +47,7 @@ public sealed partial class ProductService
             row.Field<string>("ProductTypeName"), row.Field<int>("ID").ToString())).ToList();
         if (model.ProductTypeID > 0 && model.ProductTypes.All(item => item.Value != model.ProductTypeID.ToString()))
             model.ProductTypes.Add(new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem(
-                $"ไม่พบประเภทสินค้า (ID {model.ProductTypeID}) — กรุณาเลือกใหม่", model.ProductTypeID.ToString()) { Disabled = true });
+                $"ไม่พบกลุ่มสินค้า (ID {model.ProductTypeID}) — กรุณาเลือกใหม่", model.ProductTypeID.ToString()) { Disabled = true });
     }
 
 

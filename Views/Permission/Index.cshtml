@@ -16,9 +16,9 @@
         <button id="btnExport" type="button" class="export-button" disabled title="ส่งออกผลค้นหาทั้งหมด">↓ ส่งออก Excel (ผลค้นหาทั้งหมด)</button>
     </div>
     <div class="table-responsive">
-        <table id="roleTable" class="table table-hover factory-table master-table master-table-3 mb-0" aria-label="รายการกลุ่มผู้ใช้งาน">
-            <thead><tr><th>รหัส / ชื่อกลุ่มผู้ใช้งาน</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-            <tbody><tr><td colspan="3" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+        <table id="roleTable" class="table table-hover factory-table master-table master-table-3 permission-search-table mb-0" aria-label="รายการกลุ่มผู้ใช้งาน">
+            <thead><tr><th>รหัสกลุ่มผู้ใช้งาน</th><th>รายละเอียด</th><th>สถานะข้อมูล</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="4" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
     <div class="table-footer">
@@ -57,18 +57,19 @@
             visibleRows = [];
             $('#roleCount').text('—');
             $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
-            $('#roleTable tbody').html('<tr><td colspan="3" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#roleTable tbody').html('<tr><td colspan="4" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
             $('#pagination, #paginationSummary').empty();
             message('ไม่สามารถโหลดกลุ่มผู้ใช้งานได้ กรุณาลองใหม่');
         }).always(() => $('#btnSearch').prop('disabled', false));
     }
     function renderRows(rows) {
         if (!rows.length) {
-            $('#roleTable tbody').html('<tr><td colspan="3" class="text-center text-muted py-4">ไม่พบกลุ่มผู้ใช้งาน</td></tr>');
+            $('#roleTable tbody').html('<tr><td colspan="4" class="text-center text-muted py-4">ไม่พบกลุ่มผู้ใช้งาน</td></tr>');
             return;
         }
         $('#roleTable tbody').html(rows.map(row => `<tr>
-            <td><div class="factory-code">${display(row.roleCode)}</div><div class="cell-title">${display(row.roleDescription)}</div></td>
+            <td>${display(row.roleCode)}</td>
+            <td>${display(row.roleDescription)}</td>
             <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Permission")/${encodeURIComponent(row.id)}">⚙ ตั้งค่า</a></div></td>
         </tr>`).join(''));

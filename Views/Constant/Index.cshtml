@@ -18,8 +18,8 @@
     </div>
     <div class="table-responsive">
         <table id="constantTable" class="table table-hover factory-table master-table constant-table mb-0" aria-label="รายการค่าคงที่">
-            <thead><tr><th>รหัส / ชื่อค่าคงที่</th><th>โรงงาน</th><th>ค่า IP / ค่าคงที่</th><th>แสดงในบัตรชั่ง</th><th>แสดงในหน้าจอชั่ง</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-            <tbody><tr><td colspan="7" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+            <thead><tr><th>รหัสสาขา</th><th>รหัสค่าคงที่</th><th>คำอธิบาย</th><th>ค่าคงที่</th><th>เปิดใช้งาน</th><th>แสดงในบัตรชั่ง</th><th>แสดงในหน้าจอชั่ง</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="8" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
     <div class="table-footer">
@@ -68,22 +68,24 @@
             visibleRows = [];
             $('#constantCount').text('—');
             $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
-            $('#constantTable tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#constantTable tbody').html('<tr><td colspan="8" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
             $('#pagination, #paginationSummary').empty();
             message('ไม่สามารถโหลดตั้งค่า IP และค่าคงที่ได้ กรุณาลองใหม่');
         }).always(() => $('#btnSearch').prop('disabled', false));
     }
     function renderRows(rows) {
         if (!rows.length) {
-            $('#constantTable tbody').html('<tr><td colspan="7" class="text-center text-muted py-4">ไม่พบตั้งค่า IP และค่าคงที่</td></tr>');
+            $('#constantTable tbody').html('<tr><td colspan="8" class="text-center text-muted py-4">ไม่พบตั้งค่า IP และค่าคงที่</td></tr>');
             return;
         }
         $('#constantTable tbody').html(rows.map(row => `<tr>
-            <td><div class="factory-code">${display(row.constantCode)}</div><div class="cell-title">${display(row.constantName)}</div></td>
             <td>${display(row.joinedFactoryCode ?? row.factoryCode)}</td>
-            <td><div class="customer-remark">${display(row.constantValue)}</div></td>
-            <td>${display(row.showInCardFlag)}</td><td>${display(row.showInProgramFlag)}</td>
-            <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
+            <td>${display(row.constantCode)}</td>
+            <td>${display(row.constantName)}</td>
+            <td>${display(row.constantValue)}</td>
+            <td>${display(row.activate)}</td>
+            <td>${display(row.showInCardFlag)}</td>
+            <td>${display(row.showInProgramFlag)}</td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Constant")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
     }

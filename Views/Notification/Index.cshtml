@@ -18,7 +18,7 @@
     </div>
     <div class="table-responsive">
         <table id="notificationTable" class="table table-hover factory-table master-table notification-table mb-0" aria-label="รายการการแจ้งเตือนของระบบ">
-            <thead><tr><th>รหัส / ชื่อการแจ้งเตือนของระบบ</th><th>วันที่ / เวลาเริ่มต้น</th><th>หัวข้อ / TriggerType</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+            <thead><tr><th>เลขที่แจ้งเตือน</th><th>วันที่สร้าง</th><th>รายละเอียดการแจ้งเตือน</th><th>สถานะข้อมูล</th><th>จัดการ</th></tr></thead>
             <tbody><tr><td colspan="5" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
@@ -77,9 +77,9 @@
             return;
         }
         $('#notificationTable tbody').html(rows.map(row => `<tr>
-            <td><div class="factory-code">${display(row.notificationNo)}</div><div class="cell-title">${display(row.notificationName)}</div></td>
-            <td><div>${display(row.notificationDate?.replace('T', ' '))}</div><div class="cell-detail">เริ่ม ${display(row.startDate?.replace('T', ' '))}</div><div class="cell-detail">เวลา ${display(row.notificationTime)}</div></td>
-            <td><div>${display(row.notificationSubj)}</div><div class="cell-detail">TriggerType: ${display(row.triggerType)}</div></td>
+            <td>${display(row.notificationNo)}</td>
+            <td>${display(row.notificationDate?.replace?.('T', ' '))}</td>
+            <td>${display(row.notificationName)}</td>
             <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Notification")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
@@ -89,12 +89,32 @@
         $('#paginationSummary').text(`${first}–${Math.min(page * pageSize, totalCount)} จาก ${totalCount} รายการ`);
         $('#pagination').html(`<li class="page-item ${page <= 1 ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page - 1}" aria-label="หน้าก่อนหน้า" ${page <= 1 ? 'disabled' : ''}>‹</button></li><li class="page-position">${page} / ${totalPages}</li><li class="page-item ${page >= totalPages ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page + 1}" aria-label="หน้าถัดไป" ${page >= totalPages ? 'disabled' : ''}>›</button></li>`);
     }
-    $('#btnExport').on('click', () => {
+    $('#btnExport').on('click', async () => {
         const fields = ['id', 'notificationNo', 'notificationDate', 'notificationName', 'notificationSubj', 'notificationMsg', 'triggerType', 'startDate', 'notificationTime', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
+        const detailFields = (email, owner) => ['id', 'notificationHID', email, owner, 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
         const button = $("#btnExport").prop("disabled", true);
-        ExcelExport.downloadSearch(fields, '@Url.Action("Rows", "Notification")', { TextSearch: $('#searchBox').val(), dataStatus: $('#dataStatusFilter').val() }, `notification.xlsx`, { notification: true })
-            .catch(() => message("ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่"))
-            .finally(() => button.prop("disabled", false));
+        const filters = { TextSearch: $('#searchBox').val(), dataStatus: $('#dataStatusFilter').val() };
+        const headers = [], toRecipients = [], ccRecipients = [];
+        try {
+            for (let page = 1; ; page++) {
+                const response = await $.getJSON('@Url.Action("Rows", "Notification")', { ...filters, page, pageSize: 1000, includeDetails: true });
+                headers.push(...response.rows);
+                toRecipients.push(...response.toRecipients);
+                ccRecipients.push(...response.ccRecipients);
+                if (page >= response.totalPages) break;
+            }
+            ExcelExport.downloadSheets([
+                { name: 'tsssNotificationH', fields, rows: headers },
+                { name: 'tsssNotificationD1', fields: detailFields('emailTo', 'emailToOwner'),
+                    rows: toRecipients.map(row => ({ ...row, emailTo: row.email, emailToOwner: row.owner })) },
+                { name: 'tsssNotificationD2', fields: detailFields('emailCC', 'emailCCOwner'),
+                    rows: ccRecipients.map(row => ({ ...row, emailCC: row.email, emailCCOwner: row.owner })) }
+            ], 'notification.xlsx');
+        } catch {
+            message('ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่');
+        } finally {
+            button.prop('disabled', false);
+        }
     });
     $('#btnSearch').on('click', () => loadRows(1));
     $('#searchBox').on('keydown', event => { if (event.key === 'Enter') loadRows(1); });

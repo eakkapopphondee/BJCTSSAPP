@@ -243,11 +243,45 @@ public sealed class NotificationController(ISqlDataAccess dataAccess, SqlObjectN
     };
     [HttpGet]
     public async Task<IActionResult> Rows(string? TextSearch, string? dataStatus, int page = 1,
-        int pageSize = 0, CancellationToken cancellationToken = default)
+        int pageSize = 0, bool includeDetails = false, CancellationToken cancellationToken = default)
     {
-        var result = await LoadRowsAsync(TextSearch, dataStatus, page, pageSize, cancellationToken);
+        var result = await LoadRowsAsync(TextSearch, dataStatus, page, pageSize, cancellationToken, includeDetails);
+        if (includeDetails)
+        {
+            var ids = result.Rows.Select(row => row.Id).ToArray();
+            var toRecipients = await LoadExportRecipients(ids, false, cancellationToken);
+            var ccRecipients = await LoadExportRecipients(ids, true, cancellationToken);
+            return Json(new { rows = result.Rows, toRecipients, ccRecipients, page = result.Page,
+                pageSize = result.PageSize, totalCount = result.TotalCount, totalPages = result.TotalPages });
+        }
         return Json(new { rows = result.Rows, page = result.Page, pageSize = result.PageSize,
             totalCount = result.TotalCount, totalPages = result.TotalPages });
+    }
+
+    private async Task<List<object>> LoadExportRecipients(int[] headerIds, bool cc, CancellationToken cancellationToken)
+    {
+        if (headerIds.Length == 0) return [];
+        var (tableName, email, owner) = DetailNames(cc);
+        var parameters = headerIds.Select((id, index) =>
+            new SqlParameter($"@Id{index}", SqlDbType.Int) { Value = id }).ToArray();
+        var ids = string.Join(", ", parameters.Select(parameter => parameter.ParameterName));
+        var table = await dataAccess.SelectAsync($"""
+            SELECT [ID], [NotificationHID], [{email}], [{owner}], [DataStatus],
+                [CreateUserID], [CreateUserDate], [UpdateUserID], [UpdateUserDate]
+            FROM {tableName} WHERE [NotificationHID] IN ({ids}) ORDER BY [NotificationHID], [ID];
+            """, parameters, cancellationToken);
+        return table.Rows.Cast<DataRow>().Select(row => (object)new
+        {
+            id = row.Field<int>("ID"),
+            notificationHID = row.Field<int>("NotificationHID"),
+            email = row.Field<string>(email),
+            owner = row.Field<string>(owner),
+            dataStatus = row.Field<string>("DataStatus"),
+            createUserID = row.Field<int>("CreateUserID"),
+            createUserDate = row.Field<DateTime>("CreateUserDate"),
+            updateUserID = row.Field<int?>("UpdateUserID"),
+            updateUserDate = row.Field<DateTime?>("UpdateUserDate")
+        }).ToList();
     }
 
     [HttpGet("/v1/Setup/Notification/Search"), ApiAccess]
@@ -264,7 +298,8 @@ public sealed class NotificationController(ISqlDataAccess dataAccess, SqlObjectN
     }
 
     private async Task<(List<NotificationViewModel> Rows, int Page, int PageSize, int TotalCount, int TotalPages)>
-        LoadRowsAsync(string? search, string? dataStatus, int page, int pageSize, CancellationToken cancellationToken)
+        LoadRowsAsync(string? search, string? dataStatus, int page, int pageSize, CancellationToken cancellationToken,
+            bool export = false)
     {
         const string whereClause = """
             WHERE (@Search = N'' OR [NotificationNo] LIKE @LikeSearch OR [NotificationName] LIKE @LikeSearch)
@@ -273,7 +308,7 @@ public sealed class NotificationController(ISqlDataAccess dataAccess, SqlObjectN
         var value = search?.Trim() ?? string.Empty;
         var status = dataStatus?.Trim().ToUpperInvariant();
         status = status is "A" or "C" ? status : "L";
-        pageSize = pagination.Normalize(pageSize);
+        pageSize = export ? Math.Clamp(pageSize, 1, 1000) : pagination.Normalize(pageSize);
         SqlParameter[] FilterParameters() =>
         [
             new SqlParameter("@Search", SqlDbType.NVarChar, -1) { Value = value },

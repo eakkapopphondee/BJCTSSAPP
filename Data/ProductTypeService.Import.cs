@@ -43,7 +43,7 @@ public sealed partial class ProductTypeService
                 var message = error switch
                 {
                     ValidationException or ApiException => error.Message,
-                    SqlException { Number: 2601 or 2627 } => "รหัสหรือข้อมูลประเภทสินค้าซ้ำในฐานข้อมูล",
+                    SqlException { Number: 2601 or 2627 } => "รหัสหรือข้อมูลกลุ่มสินค้าซ้ำในฐานข้อมูล",
                     SqlException { Number: 547 } => "ข้อมูลอ้างอิงไม่ถูกต้อง",
                     _ => "ไม่สามารถบันทึกแถวนี้ได้"
                 };

@@ -14,13 +14,21 @@ public sealed class LicensePlateViewModel : AuditedViewModel
     public string? TruckTypeName { get; set; }
     [ValidateNever]
     public List<SelectListItem> TruckTypes { get; set; } = [];
+    [Required, StringLength(10)]
+    public string PlateLetterSection { get; set; } = string.Empty;
+    [Required, StringLength(20)]
+    public string PlateNumberSection { get; set; } = string.Empty;
     [Required, StringLength(30)]
     public string PlateNumber { get; set; } = string.Empty;
     [Range(1, int.MaxValue, ErrorMessage = "กรุณาเลือกจังหวัดทะเบียนรถ")]
     public int PlateProvinceID { get; set; }
-    [Required, StringLength(30)]
+    [StringLength(10)]
+    public string? TrailerLetterSection { get; set; }
+    [StringLength(20)]
+    public string? TrailerNumberSection { get; set; }
+    [StringLength(10)]
     public string TrailerNumber { get; set; } = string.Empty;
-    [Range(1, int.MaxValue, ErrorMessage = "กรุณาเลือกจังหวัดทะเบียนพ่วง")]
+    [Range(0, int.MaxValue)]
     public int TrailerProviceID { get; set; }
     [Range(1, int.MaxValue)]
     public int? TransportCompanyID { get; set; }

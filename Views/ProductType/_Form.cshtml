@@ -5,10 +5,10 @@
     <div class="card-body">
         <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
         <div class="row g-2">
-            <div class="col-12 col-md-4"><label asp-for="ProductTypeCode" class="form-label">รหัสประเภทสินค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProductTypeCode" class="form-control" maxlength="20" required /></div>
-            <div class="col-12 col-md-8"><label asp-for="ProductTypeName" class="form-label">ชื่อประเภทสินค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProductTypeName" class="form-control" maxlength="200" required /></div>
-            <div class="col-12 col-md-4"><label asp-for="SAPCode" class="form-label">รหัสประเภทสินค้าใน SAP</label><input asp-for="SAPCode" class="form-control" maxlength="50" /></div>
-            <div class="col-12 col-md-8"><label asp-for="SAPDesc" class="form-label">ชื่อประเภทสินค้าใน SAP</label><input asp-for="SAPDesc" class="form-control" maxlength="250" /></div>
+            <div class="col-12 col-md-4"><label asp-for="ProductTypeCode" class="form-label">รหัสกลุ่มสินค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProductTypeCode" class="form-control" maxlength="20" required /></div>
+            <div class="col-12 col-md-8"><label asp-for="ProductTypeName" class="form-label">ชื่อกลุ่มสินค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProductTypeName" class="form-control" maxlength="200" required /></div>
+            <div class="col-12 col-md-4"><label asp-for="SAPCode" class="form-label">รหัสกลุ่มสินค้าใน SAP</label><input asp-for="SAPCode" class="form-control" maxlength="50" /></div>
+            <div class="col-12 col-md-8"><label asp-for="SAPDesc" class="form-label">ชื่อกลุ่มสินค้าใน SAP</label><input asp-for="SAPDesc" class="form-control" maxlength="250" /></div>
             <div class="col-12"><label asp-for="Remark" class="form-label">หมายเหตุ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><textarea asp-for="Remark" class="form-control" maxlength="250" rows="2" required></textarea></div>
             @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
             {
@@ -31,8 +31,8 @@
 <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="successModalLabel" class="modal-title fs-5">บันทึกสำเร็จ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">บันทึกข้อมูลประเภทสินค้าเรียบร้อยแล้ว</div>
-        <div class="modal-footer"><a class="btn btn-primary" asp-controller="ProductType" asp-action="Index">กลับไปรายการประเภทสินค้า</a></div>
+        <div class="modal-body">บันทึกข้อมูลกลุ่มสินค้าเรียบร้อยแล้ว</div>
+        <div class="modal-footer"><a class="btn btn-primary" asp-controller="ProductType" asp-action="Index">กลับไปรายการกลุ่มสินค้า</a></div>
     </div></div>
 </div>
 

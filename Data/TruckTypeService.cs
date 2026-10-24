@@ -16,7 +16,7 @@ public sealed partial class TruckTypeService(ISqlDataAccess dataAccess, SqlObjec
     private static readonly EntityDefinition Entity = new("TruckType", typeof(TruckTypeViewModel),
             [
                 new("ID", SqlDbType.Int, 0, false, 10, 0),
-                new("TruckTypeCode", SqlDbType.Char, 2, false, 0, 0),
+                new("TruckTypeCode", SqlDbType.VarChar, 4, false, 0, 0),
                 new("TruckTypeName", SqlDbType.NVarChar, 250, false, 0, 0),
                 new("DefaultFlag", SqlDbType.Char, 1, true, 0, 0),
                 new("DataStatus", SqlDbType.Char, 1, false, 0, 0),
@@ -56,7 +56,10 @@ public sealed partial class TruckTypeService(ISqlDataAccess dataAccess, SqlObjec
     {
         var extra = string.Concat(entity.LookupFields.Select(field => $", [{field}]"));
         var table = await dataAccess.SelectAsync($"""
-            SELECT {entity.ColumnList}{extra} {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
+            SELECT {entity.ColumnList}{extra},
+                (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssTruckType].[CreateUserID]) AS [CreateUserName],
+                (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssTruckType].[UpdateUserID]) AS [UpdateUserName]
+            {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
             ORDER BY [ID] DESC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
@@ -81,7 +84,13 @@ public sealed partial class TruckTypeService(ISqlDataAccess dataAccess, SqlObjec
         if (pagination is not null) metadata["Pagination"] = pagination;
         if (entity.LookupFields.Length > 0)
             metadata["Lookups"] = rows.Select(row => row.Where(pair => pair.Key == "ID" || entity.LookupFields.Contains(pair.Key)).ToDictionary());
-        var records = rows.Select(row => entity.Columns.ToDictionary(column => column.Name, column => row[column.Name]));
+        var records = rows.Select(row =>
+        {
+            var record = entity.Columns.ToDictionary(column => column.Name, column => row[column.Name]);
+            record["CreateUserName"] = row.GetValueOrDefault("CreateUserName");
+            record["UpdateUserName"] = row.GetValueOrDefault("UpdateUserName");
+            return record;
+        });
         return ApiResponse.Success(records.ToArray(), metadata.Count > 0 ? metadata : null);
     }
 

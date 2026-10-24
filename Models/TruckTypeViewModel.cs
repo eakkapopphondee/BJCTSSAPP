@@ -6,7 +6,7 @@ public sealed class TruckTypeViewModel : AuditedViewModel
 {
     public int Id { get; set; }
 
-    [Required, StringLength(2)]
+    [Required, StringLength(4)]
     public string TruckTypeCode { get; set; } = string.Empty;
 
     [Required, StringLength(250)]

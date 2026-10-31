@@ -30,7 +30,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบบริษัทขนส่ง</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบข้อมูลบริษัทขนส่ง <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-body">ต้องการลบข้อมูลบริษัทขนส่ง รหัส <strong id="deleteCode"></strong> ชื่อ <strong id="deleteName"></strong> หรือไม่?</div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบบริษัทขนส่ง</button></div>
     </div></div>
 </div>
@@ -103,7 +103,11 @@
     $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
     $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
     $('#transportCompanyTable').on('click', '.btn-delete', function () {
-        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+        deleteId = $(this).data('id');
+        const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
+        $('#deleteCode').text(row?.transportCompanyCode || '—');
+        $('#deleteName').text(row?.transportCompanyName || '—');
+        modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {
         if (deleteId === null) return;

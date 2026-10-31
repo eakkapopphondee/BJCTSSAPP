@@ -30,7 +30,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบการแจ้งเตือนของระบบ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบข้อมูลการแจ้งเตือนของระบบ <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-body">ต้องการลบข้อมูลการแจ้งเตือนของระบบ เลขที่ <strong id="deleteNo"></strong> ชื่อ <strong id="deleteName"></strong> หรือไม่?</div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบการแจ้งเตือนของระบบ</button></div>
     </div></div>
 </div>
@@ -78,7 +78,7 @@
         }
         $('#notificationTable tbody').html(rows.map(row => `<tr>
             <td>${display(row.notificationNo)}</td>
-            <td>${display(row.notificationDate?.replace?.('T', ' '))}</td>
+            <td>${display(row.notificationDate?.slice(0, 10).split('-').reverse().join('/'))}</td>
             <td>${display(row.notificationName)}</td>
             <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Notification")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
@@ -121,7 +121,11 @@
     $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
     $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
     $('#notificationTable').on('click', '.btn-delete', function () {
-        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+        deleteId = $(this).data('id');
+        const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
+        $('#deleteNo').text(row?.notificationNo || '—');
+        $('#deleteName').text(row?.notificationName || '—');
+        modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {
         if (deleteId === null) return;

@@ -37,6 +37,7 @@ public sealed partial class FactoryService
     }
     public async Task<Dictionary<string, object?>> SaveFormAsync(FactoryViewModel model, ClaimsPrincipal webUser, CancellationToken cancellationToken)
     {
+        if (model.PrintFlag == "N") model.PrintCopy = 0;
         InputValidation.ValidateModel(model);
         string? uploaded = null;
         try

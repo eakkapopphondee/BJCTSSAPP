@@ -59,7 +59,7 @@ public sealed partial class RoleService(ISqlDataAccess dataAccess, SqlObjectName
                 (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssRole].[CreateUserID]) AS [CreateUserName],
                 (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssRole].[UpdateUserID]) AS [UpdateUserName]
             {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [RoleCode] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

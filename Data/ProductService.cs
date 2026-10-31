@@ -61,7 +61,7 @@ public sealed partial class ProductService(ISqlDataAccess dataAccess, SqlObjectN
         var extra = string.Concat(entity.LookupFields.Select(field => $", [{field}]"));
         var table = await dataAccess.SelectAsync($"""
             SELECT {entity.ColumnList}{extra} {entity.SearchFrom(sqlObjects.Prefix)} {searchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [ID] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

@@ -18,8 +18,8 @@ public sealed class ProductTypeViewModel : AuditedViewModel
     [StringLength(250)]
     public string? SAPDesc { get; set; }
 
-    [Required, StringLength(250)]
-    public string Remark { get; set; } = string.Empty;
+    [StringLength(250)]
+    public string? Remark { get; set; }
 
     [Required, StringLength(1)]
     public string DataStatus { get; set; } = "A";

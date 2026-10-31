@@ -18,8 +18,8 @@
     </div>
     <div class="table-responsive">
         <table id="provinceTable" class="table table-hover factory-table master-table master-table-3 mb-0" aria-label="รายการจังหวัด">
-            <thead><tr><th>รหัสจังหวัด</th><th>จังหวัด</th><th>สถานะข้อมูล</th><th>ผู้สร้างข้อมูล</th><th>วันที่สร้าง</th><th>ผู้ปรับปรุง</th><th>วันที่ปรับปรุง</th><th>จัดการ</th></tr></thead>
-            <tbody><tr><td colspan="8" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
+            <thead><tr><th>รหัสจังหวัด</th><th>จังหวัด</th><th>สถานะข้อมูล</th><th>ผู้สร้างข้อมูล</th><th>วันที่สร้าง</th><th>จัดการ</th></tr></thead>
+            <tbody><tr><td colspan="6" class="text-center text-muted py-4">กำลังโหลดข้อมูล...</td></tr></tbody>
         </table>
     </div>
     <div class="table-footer">
@@ -30,7 +30,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบจังหวัด</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบข้อมูลจังหวัด <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-body"><span>ต้องการลบข้อมูลจังหวัด</span> <span>รหัสจังหวัด</span> <strong id="deleteCode"></strong> <span>ชื่อ</span> <strong id="deleteName"></strong> <span>หรือไม่?</span></div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบจังหวัด</button></div>
     </div></div>
 </div>
@@ -44,6 +44,11 @@
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const token = $('input[name="__RequestVerificationToken"]').val();
     const display = value => $('<div>').text(value ?? '').html();
+    function formatCreatedDate(value) {
+        if (!value) return '';
+        const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/.exec(value);
+        return match ? `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}:${match[6]}` : value;
+    }
     function message(text, type = 'danger') {
         $('#alertMessage').removeClass('d-none alert-danger alert-success').addClass(`alert-${type}`).text(text);
     }
@@ -68,14 +73,14 @@
             visibleRows = [];
             $('#provinceCount').text('—');
             $('#connectionStatus').text('โหลดข้อมูลไม่สำเร็จ');
-            $('#provinceTable tbody').html('<tr><td colspan="8" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
+            $('#provinceTable tbody').html('<tr><td colspan="6" class="text-center text-muted py-4">โหลดข้อมูลไม่สำเร็จ กรุณากดค้นหาเพื่อลองใหม่</td></tr>');
             $('#pagination, #paginationSummary').empty();
             message('ไม่สามารถโหลดข้อมูลจังหวัดได้ กรุณาลองใหม่');
         }).always(() => $('#btnSearch').prop('disabled', false));
     }
     function renderRows(rows) {
         if (!rows.length) {
-            $('#provinceTable tbody').html('<tr><td colspan="8" class="text-center text-muted py-4">ไม่พบข้อมูลจังหวัด</td></tr>');
+            $('#provinceTable tbody').html('<tr><td colspan="6" class="text-center text-muted py-4">ไม่พบข้อมูลจังหวัด</td></tr>');
             return;
         }
         $('#provinceTable tbody').html(rows.map(row => `<tr>
@@ -83,9 +88,7 @@
             <td>${display(row.provinceName)}</td>
             <td><span class="status-badge ${row.dataStatus === 'C' ? 'cancelled' : ''}">${row.dataStatus === 'A' ? 'ใช้งานอยู่' : row.dataStatus === 'C' ? 'ยกเลิก' : display(row.dataStatus)}</span></td>
             <td>${display(row.createUserName)}</td>
-            <td>${display(row.createUserDate?.replace?.('T', ' '))}</td>
-            <td>${display(row.updateUserName)}</td>
-            <td>${display(row.updateUserDate?.replace?.('T', ' '))}</td>
+            <td class="text-nowrap">${display(formatCreatedDate(row.createUserDate))}</td>
             <td><div class="row-actions"><a class="btn btn-sm btn-outline-primary" href="@Url.Action("Edit", "Province")/${encodeURIComponent(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m16 3 5 5L8 21H3v-5L16 3Z"/><path d="m14 5 5 5"/></svg><span>แก้ไข</span></a><button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${Number(row.id)}"><svg class="action-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg><span>ลบ</span></button></div></td>
         </tr>`).join(''));
     }
@@ -106,7 +109,11 @@
     $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
     $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
     $('#provinceTable').on('click', '.btn-delete', function () {
-        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+        deleteId = $(this).data('id');
+        const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
+        $('#deleteCode').text(row?.provinceCode ?? '—');
+        $('#deleteName').text(row?.provinceName || '—');
+        modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {
         if (deleteId === null) return;

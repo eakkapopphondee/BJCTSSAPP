@@ -9,7 +9,7 @@
             <div class="col-12 col-md-8"><label asp-for="ProductTypeName" class="form-label">ชื่อกลุ่มสินค้า <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><input asp-for="ProductTypeName" class="form-control" maxlength="200" required /></div>
             <div class="col-12 col-md-4"><label asp-for="SAPCode" class="form-label">รหัสกลุ่มสินค้าใน SAP</label><input asp-for="SAPCode" class="form-control" maxlength="50" /></div>
             <div class="col-12 col-md-8"><label asp-for="SAPDesc" class="form-label">ชื่อกลุ่มสินค้าใน SAP</label><input asp-for="SAPDesc" class="form-control" maxlength="250" /></div>
-            <div class="col-12"><label asp-for="Remark" class="form-label">หมายเหตุ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><textarea asp-for="Remark" class="form-control" maxlength="250" rows="2" required></textarea></div>
+            <div class="col-12"><label asp-for="Remark" class="form-label">หมายเหตุ</label><textarea asp-for="Remark" class="form-control" maxlength="250" rows="2"></textarea></div>
             @if (ViewContext.RouteData.Values["action"]?.ToString() == "Edit")
             {
                 <div class="col-12 col-md-4"><label asp-for="DataStatus" class="form-label">สถานะ <span class="text-danger required-marker" aria-hidden="true">*</span><span class="visually-hidden"> (จำเป็นต้องกรอก)</span></label><select asp-for="DataStatus" class="form-select" required><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option>

@@ -67,9 +67,376 @@ window.ExcelExport = (() => {
         footer.setUint32(16, offset, true);
         return new Blob([...chunks, ...directory, end], { type: mime });
     }
+    const headerLabels = {
+        "id": [
+            "ID",
+            "ID"
+        ],
+        "customercode": [
+            "รหัสลูกค้า/บริษัทผู้ส่ง",
+            "Customer / Sender Code"
+        ],
+        "customername": [
+            "ชื่อลูกค้า/บริษัทผู้ส่ง",
+            "Customer / Sender Name"
+        ],
+        "address1": [
+            "ที่อยู่ 1",
+            "Address 1"
+        ],
+        "address2": [
+            "ที่อยู่ 2",
+            "Address 2"
+        ],
+        "address3": [
+            "ที่อยู่ 3",
+            "Address 3"
+        ],
+        "phonenumber": [
+            "โทรศัพท์",
+            "Phone Number"
+        ],
+        "sapcode": [
+            "รหัส SAP",
+            "SAP Code"
+        ],
+        "sapdesc": [
+            "รายละเอียด SAP",
+            "SAP Description"
+        ],
+        "remark": [
+            "หมายเหตุ",
+            "Remark"
+        ],
+        "molasflag": [
+            "ผู้ผลิตกากน้ำตาล",
+            "Molasses Producer"
+        ],
+        "tbrflag": [
+            "ลูกค้าของ TBR",
+            "TBR Customer"
+        ],
+        "defaultflag": [
+            "ค่าเริ่มต้น",
+            "Default"
+        ],
+        "datastatus": [
+            "สถานะ",
+            "Status"
+        ],
+        "createuserid": [
+            "ID ผู้สร้าง",
+            "Created By ID"
+        ],
+        "createuserdate": [
+            "วันที่สร้าง",
+            "Created Date"
+        ],
+        "updateuserid": [
+            "ID ผู้แก้ไข",
+            "Updated By ID"
+        ],
+        "updateuserdate": [
+            "วันที่แก้ไข",
+            "Updated Date"
+        ],
+        "factorycode": [
+            "รหัสบริษัท",
+            "Company Code"
+        ],
+        "factorydesc": [
+            "ชื่อบริษัท",
+            "Company Name"
+        ],
+        "branchcode": [
+            "รหัสสาขา",
+            "Branch Code"
+        ],
+        "branchdesc": [
+            "ชื่อสาขา",
+            "Branch Name"
+        ],
+        "programtypeid": [
+            "ID ประเภทโปรแกรม",
+            "Program Type ID"
+        ],
+        "programtypecode": [
+            "รหัสประเภทโปรแกรม",
+            "Program Type Code"
+        ],
+        "programtypename": [
+            "ชื่อประเภทโปรแกรม",
+            "Program Type Name"
+        ],
+        "printflag": [
+            "พิมพ์",
+            "Print"
+        ],
+        "printcopy": [
+            "จำนวนสำเนา",
+            "Print Copies"
+        ],
+        "productcode": [
+            "รหัสสินค้า",
+            "Product Code"
+        ],
+        "productname": [
+            "ชื่อสินค้า",
+            "Product Name"
+        ],
+        "producttypeid": [
+            "ID กลุ่มสินค้า",
+            "Product Group ID"
+        ],
+        "producttypecode": [
+            "รหัสกลุ่มสินค้า",
+            "Product Group Code"
+        ],
+        "producttypename": [
+            "ชื่อกลุ่มสินค้า",
+            "Product Group Name"
+        ],
+        "unitprice": [
+            "ราคาต่อหน่วย",
+            "Unit Price"
+        ],
+        "stdweight": [
+            "น้ำหนักมาตรฐาน",
+            "Standard Weight"
+        ],
+        "tbrdefaultflag": [
+            "ค่าเริ่มต้น TBR",
+            "TBR Default"
+        ],
+        "roleid": [
+            "ID กลุ่มผู้ใช้งาน",
+            "User Group ID"
+        ],
+        "rolecode": [
+            "รหัสกลุ่มผู้ใช้งาน",
+            "User Group Code"
+        ],
+        "roledescription": [
+            "ชื่อกลุ่มผู้ใช้งาน",
+            "User Group Name"
+        ],
+        "username": [
+            "ชื่อผู้ใช้",
+            "Username"
+        ],
+        "userfullname": [
+            "ชื่อ-นามสกุล",
+            "Full Name"
+        ],
+        "email": [
+            "อีเมล",
+            "Email"
+        ],
+        "provincecode": [
+            "รหัสจังหวัด",
+            "Province Code"
+        ],
+        "provincename": [
+            "ชื่อจังหวัด",
+            "Province Name"
+        ],
+        "weighttypecode": [
+            "รหัสประเภทการชั่ง",
+            "Weighing Type Code"
+        ],
+        "weighttypename": [
+            "ชื่อประเภทการชั่ง",
+            "Weighing Type Name"
+        ],
+        "trucktypeid": [
+            "ID ประเภทรถ",
+            "Vehicle Type ID"
+        ],
+        "trucktypecode": [
+            "รหัสประเภทรถ",
+            "Vehicle Type Code"
+        ],
+        "trucktypename": [
+            "ชื่อประเภทรถ",
+            "Vehicle Type Name"
+        ],
+        "transportcompanyid": [
+            "ID บริษัทขนส่ง",
+            "Transport Company ID"
+        ],
+        "transportcompanycode": [
+            "รหัสบริษัทขนส่ง",
+            "Transport Company Code"
+        ],
+        "transportcompanyname": [
+            "ชื่อบริษัทขนส่ง",
+            "Transport Company Name"
+        ],
+        "platelettersection": [
+            "หมวดอักษรทะเบียนรถ",
+            "License Plate Letters"
+        ],
+        "platenumbersection": [
+            "เลขทะเบียนรถ",
+            "License Plate Digits"
+        ],
+        "platenumber": [
+            "ทะเบียนรถ",
+            "License Plate"
+        ],
+        "plateprovinceid": [
+            "ID จังหวัดทะเบียนรถ",
+            "License Plate Province ID"
+        ],
+        "plateprovincename": [
+            "จังหวัดทะเบียนรถ",
+            "License Plate Province"
+        ],
+        "trailerlettersection": [
+            "หมวดอักษรทะเบียนพ่วง",
+            "Trailer Plate Letters"
+        ],
+        "trailernumbersection": [
+            "เลขทะเบียนพ่วง",
+            "Trailer Plate Digits"
+        ],
+        "trailernumber": [
+            "ทะเบียนพ่วง",
+            "Trailer Plate"
+        ],
+        "trailerproviceid": [
+            "ID จังหวัดทะเบียนพ่วง",
+            "Trailer Plate Province ID"
+        ],
+        "trailerprovincename": [
+            "จังหวัดทะเบียนพ่วง",
+            "Trailer Plate Province"
+        ],
+        "qrcode": [
+            "QR Code",
+            "QR Code"
+        ],
+        "constantcode": [
+            "รหัสค่าคงที่",
+            "Constant Code"
+        ],
+        "constantname": [
+            "คำอธิบาย",
+            "Description"
+        ],
+        "constantvalue": [
+            "ค่าคงที่",
+            "Constant Value"
+        ],
+        "activate": [
+            "เปิดใช้งาน",
+            "Enabled"
+        ],
+        "showincardflag": [
+            "แสดงในบัตรชั่ง",
+            "Show on Weighing Card"
+        ],
+        "showinprogramflag": [
+            "แสดงในหน้าจอชั่ง",
+            "Show on Weighing Screen"
+        ],
+        "urlsettingcode": [
+            "รหัสการตั้งค่า URL",
+            "URL Setting Code"
+        ],
+        "urlsettingname": [
+            "ชื่อการตั้งค่า URL",
+            "URL Setting Name"
+        ],
+        "inout": [
+            "ขาเข้า/ขาออก",
+            "Inbound / Outbound"
+        ],
+        "method": [
+            "วิธีการ",
+            "Method"
+        ],
+        "contenttype": [
+            "ประเภทเนื้อหา",
+            "Content Type"
+        ],
+        "url": [
+            "URL",
+            "URL"
+        ],
+        "notificationno": [
+            "เลขที่การแจ้งเตือน",
+            "Notification Number"
+        ],
+        "notificationdate": [
+            "วันที่แจ้งเตือน",
+            "Notification Date"
+        ],
+        "notificationname": [
+            "ชื่อการแจ้งเตือน",
+            "Notification Name"
+        ],
+        "notificationsubj": [
+            "Subject ใน email",
+            "Notification Subject"
+        ],
+        "notificationmsg": [
+            "ข้อความแจ้งเตือน",
+            "Notification Message"
+        ],
+        "triggertype": [
+            "ประเภทการแจ้งเตือน",
+            "Trigger Type"
+        ],
+        "startdate": [
+            "วันที่เริ่มต้น",
+            "Start Date"
+        ],
+        "notificationtime": [
+            "เวลาแจ้งเตือน",
+            "Notification Time"
+        ],
+        "notificationhid": [
+            "ID การแจ้งเตือน",
+            "Notification ID"
+        ],
+        "emailto": [
+            "อีเมลผู้รับ",
+            "Recipient Email"
+        ],
+        "emailtoowner": [
+            "ชื่อผู้รับ",
+            "Recipient Name"
+        ],
+        "emailcc": [
+            "อีเมลผู้รับสำเนา",
+            "CC Email"
+        ],
+        "emailccowner": [
+            "ชื่อผู้รับสำเนา",
+            "CC Name"
+        ],
+        "excelrow": [
+            "แถว Excel",
+            "Excel Row"
+        ],
+        "result": [
+            "ผล",
+            "Result"
+        ],
+        "message": [
+            "รายละเอียด",
+            "Message"
+        ]
+    };
+    function header(field, options) {
+        if (options.localizeHeaders === false) return field;
+        const labels = headerLabels[String(field).toLowerCase()];
+        return labels ? labels[window.document?.documentElement.lang === "en" ? 1 : 0] : field;
+    }
     function worksheet(fields, rows, options = {}) {
         const requiredHeaders = new Set(options.requiredHeaders ?? []);
-        const allRows = [fields, ...rows.map(row => fields.map(field => row[field]))];
+        const allRows = [fields.map(field => header(field, options)), ...rows.map(row => fields.map(field => row[field]))];
         const sheetRows = allRows.map((values, index) => `<row r="${index + 1}">${values.map((value, position) =>
             cell(value, `${column(position)}${index + 1}`, index === 0 && requiredHeaders.has(fields[position]) ? ' s="2"' : '')).join('')}</row>`).join('');
         const columns = options.textColumns ? `<cols><col min="1" max="${fields.length}" width="24" customWidth="1" style="1"/></cols>` : '';
@@ -115,7 +482,7 @@ window.ExcelExport = (() => {
             const totalPages = notification ? response.totalPages : response.Pagination.TotalPages;
             if (page >= totalPages) break;
         }
-        download(fields, rows, filename);
+        download(fields, rows, filename, options);
     }
     return { download, downloadSearch, workbook, workbookSheets, downloadSheets: (sheets, filename) => save(workbookSheets(sheets), filename) };
 })();

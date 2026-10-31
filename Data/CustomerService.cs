@@ -32,7 +32,7 @@ public sealed partial class CustomerService(ISqlDataAccess dataAccess, SqlObject
                 new("UpdateUserID", SqlDbType.Int, 0, true, 10, 0),
                 new("UpdateUserDate", SqlDbType.DateTime, 0, true, 0, 0),
             ], """
-                WHERE (@Search = N'' OR [CustomerCode] LIKE @LikeSearch OR [CustomerName] LIKE @LikeSearch OR [SAPCode] LIKE @LikeSearch OR [SAPDesc] LIKE @LikeSearch)
+                WHERE (@Search = N'' OR [CustomerCode] LIKE @LikeSearch OR [CustomerName] LIKE @LikeSearch OR [PhoneNumber] LIKE @LikeSearch OR [SAPCode] LIKE @LikeSearch OR [SAPDesc] LIKE @LikeSearch)
                 AND (@DataStatus = N'L' OR [DataStatus] = @DataStatus)
                 """, ["CustomerCode", "CustomerName"], []);
 
@@ -64,7 +64,7 @@ public sealed partial class CustomerService(ISqlDataAccess dataAccess, SqlObject
         var extra = string.Concat(entity.LookupFields.Select(field => $", [{field}]"));
         var table = await dataAccess.SelectAsync($"""
             SELECT {entity.ColumnList}{extra} {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [CustomerName] ASC, [CustomerCode] ASC, [ID] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

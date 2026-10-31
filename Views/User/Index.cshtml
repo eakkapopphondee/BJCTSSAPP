@@ -30,7 +30,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบผู้ใช้งาน</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบข้อมูลผู้ใช้งาน <strong id="deleteId"></strong> หรือไม่? การลบนี้จะเปลี่ยนสถานะเป็นยกเลิก</div>
+        <div class="modal-body">ต้องการลบข้อมูลผู้ใช้งาน ชื่อผู้ใช้งาน <strong id="deleteUserName"></strong> ชื่อเต็ม <strong id="deleteName"></strong> หรือไม่? การลบนี้จะเปลี่ยนสถานะเป็นยกเลิก</div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบผู้ใช้งาน</button></div>
     </div></div>
 </div>
@@ -40,8 +40,8 @@
         <div class="modal-header"><h2 id="passwordModalLabel" class="modal-title fs-5">แก้ไขรหัสผ่าน</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
         <div class="modal-body">
             <input id="passwordUserId" name="Id" type="hidden" />
-            <div class="mb-3"><label for="Password" class="form-label">รหัสผ่าน</label><input id="Password" name="Password" type="password" autocomplete="new-password" class="form-control" required /></div>
-            <div class="mb-3"><label for="ConfirmPassword" class="form-label">ยืนยันรหัสผ่าน</label><input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" class="form-control" required /></div>
+            <div class="mb-3"><label for="Password" class="form-label">รหัสผ่าน</label><partial name="_PasswordInput" model='@("Password")' /></div>
+            <div class="mb-3"><label for="ConfirmPassword" class="form-label">ยืนยันรหัสผ่าน</label><partial name="_PasswordInput" model='@("ConfirmPassword")' /></div>
             <div id="passwordError" class="alert alert-danger d-none" role="alert" style="white-space:pre-line"></div>
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button id="btnSavePassword" type="submit" class="btn btn-primary">บันทึก</button></div>
@@ -50,6 +50,7 @@
 
 @section Scripts {
 <script src="~/js/setup-api.js" asp-append-version="true"></script>
+<script src="~/js/user-password.js" asp-append-version="true"></script>
 <script src="~/js/excel-export.js" asp-append-version="true"></script>
 <script>
 (() => {
@@ -116,7 +117,11 @@
     $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
     $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
     $('#userTable').on('click', '.btn-delete', function () {
-        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+        deleteId = $(this).data('id');
+        const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
+        $('#deleteUserName').text(row?.userName || '—');
+        $('#deleteName').text(row?.userFullName || '—');
+        modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {
         if (deleteId === null) return;

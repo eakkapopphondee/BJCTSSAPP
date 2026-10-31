@@ -34,7 +34,7 @@ public sealed partial class ProductTypeService
         ProductTypeName = row.Field<string>("ProductTypeName") ?? string.Empty,
         SAPCode = row.Field<string>("SAPCode"),
         SAPDesc = row.Field<string>("SAPDesc"),
-        Remark = row.Field<string>("Remark") ?? string.Empty,
+        Remark = row.Field<string>("Remark"),
         DataStatus = row.Field<string>("DataStatus") ?? string.Empty,
         CreateUserID = row.Field<int>("CreateUserID"),
         CreateUserDate = row.Field<DateTime>("CreateUserDate"),

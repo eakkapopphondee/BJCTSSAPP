@@ -53,7 +53,30 @@ html{font-size:13px;min-height:100%}body{margin:0;background:var(--surface);colo
     font-size: 11px;
     white-space: nowrap;
 }
-.export-button:disabled { opacity: .5; cursor: default; }
+.export-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 12px;
+    border: 1px solid var(--green);
+    border-radius: 4px;
+    background: var(--brand-soft);
+    color: var(--brand-deep);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.export-button:hover:not(:disabled) {
+    background: var(--green);
+    color: #fff;
+}
+.export-button:active:not(:disabled) { background: var(--brand-deep); color: #fff; }
+.export-button:focus-visible {
+    outline: 2px solid var(--brand-deep);
+    outline-offset: 3px;
+}
+.export-button:disabled { opacity: .5; cursor: not-allowed; }
 @media (max-width: 575.98px) {
     .search-toolbar .btn, .search-toolbar .form-select,
     .row-actions .btn, .page-link { min-height: 36px; }
@@ -413,6 +436,12 @@ html{font-size:13px;min-height:100%}body{margin:0;background:var(--surface);colo
 #constantTable th:nth-child(3), #constantTable th:nth-child(4) { width: 17%; }
 #constantTable th:nth-child(6), #constantTable th:nth-child(7) { width: 12%; }
 #constantTable th:nth-child(8) { width: 13%; }
+#constantTable .row-actions {
+    flex-wrap: nowrap !important;
+    width: max-content;
+    margin-left: auto;
+}
+#constantTable .row-actions .btn { white-space: nowrap; }
 
 #urlSettingTable th:nth-child(1) { width: 10%; }
 #urlSettingTable th:nth-child(2) { width: 11%; }
@@ -471,6 +500,41 @@ html{font-size:13px;min-height:100%}body{margin:0;background:var(--surface);colo
 }
 .form-check-input:checked { background-color: var(--green); border-color: var(--green); }
 .form-check-input:focus { border-color: var(--brand-leaf); box-shadow: 0 0 0 .2rem var(--focus-ring); }
+/* Shared checkbox sizing for forms and dynamically rendered permission tables. */
+.form-check-input[type="checkbox"]:not([role="switch"]):not(.form-switch .form-check-input) {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    margin-top: 0;
+    vertical-align: middle;
+    border: 2px solid var(--muted);
+    border-radius: 5px;
+    cursor: pointer;
+}
+.form-check:has(> input[type="checkbox"]):not(.form-switch) {
+    min-height: 32px;
+    padding-left: 34px;
+}
+.form-check:not(.form-switch) > .form-check-input[type="checkbox"] {
+    margin-left: -34px;
+    margin-top: 4px;
+}
+.form-check:has(> input[type="checkbox"]):not(.form-switch) > .form-check-label {
+    display: inline-block;
+    padding-block: 4px;
+    cursor: pointer;
+}
+.form-check-input[type="checkbox"]:checked,
+.form-check-input[type="checkbox"]:indeterminate {
+    background-color: var(--green);
+    border-color: var(--green);
+}
+.form-check-input[type="checkbox"]:hover:not(:disabled) { border-color: var(--brand-deep); }
+.form-check-input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--brand-deep);
+    outline-offset: 3px;
+}
+.form-check-input[type="checkbox"]:disabled { cursor: not-allowed; }
 .form-switch .form-check-input:focus:not(:checked) {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2381bf5b'/%3e%3c/svg%3e");
 }
@@ -493,8 +557,45 @@ html{font-size:13px;min-height:100%}body{margin:0;background:var(--surface);colo
 .brand-caption { font-size: 10px; font-weight: 700; letter-spacing: 2px; }
 .brand .brand-caption { color: var(--sidebar-muted); }
 .auth-language-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+/* Nearly square inputs with comfortable row and column spacing. */
+.form-control,
+.form-select,
+.input-group-text {
+    border-radius: 2px;
+}
+form .row {
+    --bs-gutter-y: 1.25rem;
+    --bs-gutter-x: 1.5rem;
+}
+form .form-label {
+    margin-bottom: .5rem !important;
+}
+form .mb-3 {
+    margin-bottom: 1.25rem !important;
+}
 .auth-brand { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 24px; }
 @media (min-width: 576px) {
     .app-sidebar { width: 260px; padding-left: 15px; padding-right: 15px; }
     .app-shell { margin-left: 260px; }
 }
+
+/* Muted red for import file requirements. */
+.import-file-hint { color: #a65353; }
+
+/* Province search: six columns with room for a single-line creation timestamp. */
+#provinceTable { min-width: 850px; }
+#provinceTable th:nth-child(1) { width: 12%; }
+#provinceTable th:nth-child(2) { width: 24%; }
+#provinceTable th:nth-child(3) { width: 12%; }
+#provinceTable th:nth-child(4) { width: 16%; }
+#provinceTable th:nth-child(5) { width: 20%; white-space: nowrap; }
+#provinceTable th:nth-child(6) { width: 16%; }
+
+/* Truck type search: six columns with a single-line creation timestamp. */
+#truckTypeTable { min-width: 850px; }
+#truckTypeTable th:nth-child(1) { width: 12%; }
+#truckTypeTable th:nth-child(2) { width: 24%; }
+#truckTypeTable th:nth-child(3) { width: 12%; }
+#truckTypeTable th:nth-child(4) { width: 16%; }
+#truckTypeTable th:nth-child(5) { width: 20%; white-space: nowrap; }
+#truckTypeTable th:nth-child(6) { width: 16%; }

@@ -9,19 +9,19 @@
     <div class="card-body">
         <p class="text-muted small mb-3"><span class="text-danger" aria-hidden="true">*</span> หมายถึงข้อมูลที่จำเป็นต้องกรอก</p>
         <div class="row g-3">
-            <div class="col-12 col-md-6"><label class="form-label" asp-for="UserFullName">ชื่อ-นามสกุล <span class="text-danger required-marker" aria-hidden="true">*</span></label><input asp-for="UserFullName" class="form-control" maxlength="150" required /></div>
-            <div class="col-12 col-md-6"><label class="form-label" asp-for="UserName">ชื่อผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input asp-for="UserName" class="form-control" maxlength="50" autocomplete="off" required /></div>
-            <div class="col-12 col-md-6"><label class="form-label" asp-for="Email">อีเมล</label><input asp-for="Email" type="email" class="form-control" maxlength="80" /></div>
-            <div class="col-12 col-md-6"><label class="form-label" asp-for="RoleID">กลุ่มผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><select asp-for="RoleID" asp-items="Model.Roles" class="form-select" required><option value="">เลือกกลุ่มผู้ใช้งาน</option></select></div>
+            <div class="col-12"><label class="form-label" asp-for="UserName">รหัสผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input asp-for="UserName" class="form-control" maxlength="50" autocomplete="off" required /></div>
+            <div class="col-12"><label class="form-label" asp-for="UserFullName">ชื่อผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input asp-for="UserFullName" class="form-control" maxlength="150" required /></div>
+            <div class="col-12"><label class="form-label" asp-for="Email">e-mail</label><input asp-for="Email" type="email" class="form-control" maxlength="80" /></div>
             @if (ViewContext.RouteData.Values["action"]?.ToString() == "Create")
             {
                 <input type="hidden" name="DataStatus" value="A" />
-                <div class="col-12 col-md-6"><label class="form-label" for="Password">รหัสผ่าน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input id="Password" name="Password" type="password" class="form-control" autocomplete="new-password" required /></div>
-                <div class="col-12 col-md-6"><label class="form-label" for="ConfirmPassword">ยืนยันรหัสผ่าน <span class="text-danger required-marker" aria-hidden="true">*</span></label><input id="ConfirmPassword" name="ConfirmPassword" type="password" class="form-control" autocomplete="new-password" required /></div>
+                <div class="col-12"><label class="form-label" for="Password">รหัสผ่าน <span class="text-danger required-marker" aria-hidden="true">*</span></label><partial name="_PasswordInput" model='@("Password")' /></div>
+                <div class="col-12"><label class="form-label" for="ConfirmPassword">ยืนยันรหัสผ่าน <span class="text-danger required-marker" aria-hidden="true">*</span></label><partial name="_PasswordInput" model='@("ConfirmPassword")' /></div>
             }
-            else
+            <div class="col-12"><label class="form-label" asp-for="RoleID">กลุ่มผู้ใช้งาน <span class="text-danger required-marker" aria-hidden="true">*</span></label><select asp-for="RoleID" asp-items="Model.Roles" class="form-select" required><option value="">เลือกกลุ่มผู้ใช้งาน</option></select></div>
+            @if (ViewContext.RouteData.Values["action"]?.ToString() != "Create")
             {
-                <div class="col-12 col-md-6"><label class="form-label" asp-for="DataStatus">สถานะ</label><select asp-for="DataStatus" class="form-select"><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option></select></div>
+                <div class="col-12"><label class="form-label" asp-for="DataStatus">สถานะ</label><select asp-for="DataStatus" class="form-select"><option value="A">ใช้งานอยู่</option><option value="C">ยกเลิก</option></select></div>
             }
         </div>
     </div>

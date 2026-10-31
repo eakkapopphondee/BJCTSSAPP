@@ -59,7 +59,7 @@ public sealed partial class ProvinceService(ISqlDataAccess dataAccess, SqlObject
                 (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssProvince].[CreateUserID]) AS [CreateUserName],
                 (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssProvince].[UpdateUserID]) AS [UpdateUserName]
             {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [ProvinceName] ASC, [ProvinceCode] ASC, [ID] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

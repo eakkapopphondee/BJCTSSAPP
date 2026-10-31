@@ -4,7 +4,7 @@
 <div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
     <div class="d-flex align-items-center gap-2"><h1 class="mb-0">ทะเบียนสินค้า</h1><span class="factory-total"><span id="productCount" aria-live="polite">—</span> รายการ</span></div>
     <div class="d-flex flex-column align-items-end gap-1">
-        <small class="text-muted text-end">Import รองรับไฟล์ .xlsx ขนาดไม่เกิน 5 MB และข้อมูล 1–5,000 แถว</small>
+        <small class="import-file-hint text-end">Import รองรับไฟล์ .xlsx ขนาดไม่เกิน 5 MB และข้อมูล 1–5,000 แถว</small>
         <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
             <a class="btn btn-primary btn-add" href="@Url.Action("Create", "Product")">＋ เพิ่มสินค้า</a>
             <button id="btnTemplate" type="button" class="btn btn-outline-primary">↓ ดาวน์โหลด Excel template</button>
@@ -51,7 +51,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบสินค้า</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบทะเบียนสินค้า <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-body">ต้องการลบทะเบียนสินค้า รหัส <strong id="deleteCode"></strong> ชื่อ <strong id="deleteName"></strong> หรือไม่?</div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบสินค้า</button></div>
     </div></div>
 </div>
@@ -126,7 +126,7 @@
             .finally(() => button.prop("disabled", false));
     });
     $('#btnTemplate').on('click', () => ExcelExport.download(importFields, [], 'product-import-template.xlsx', {
-        textColumns: true, requiredHeaders: ['ProductTypeID', 'ProductCode', 'ProductName', 'UnitPrice', 'StdWeight']
+        localizeHeaders: false, textColumns: true, requiredHeaders: ['ProductTypeID', 'ProductCode', 'ProductName', 'UnitPrice', 'StdWeight']
     }));
     $('#btnImport').on('click', () => $('#importFile').trigger('click'));
     $('#importFile').on('change', function () {
@@ -173,7 +173,11 @@
     $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
     $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
     $('#productTable').on('click', '.btn-delete', function () {
-        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+        deleteId = $(this).data('id');
+        const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
+        $('#deleteCode').text(row?.productCode || '—');
+        $('#deleteName').text(row?.productName || '—');
+        modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {
         if (deleteId === null) return;

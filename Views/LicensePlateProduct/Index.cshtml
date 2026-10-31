@@ -22,9 +22,16 @@
     <div class="card-body">
         <div asp-validation-summary="All" class="text-danger" role="alert"></div>
         <div class="row g-3">
-            <div class="col-md-6"><label asp-for="ProductID" class="form-label">สินค้า <span class="text-danger">*</span></label><select asp-for="ProductID" asp-items="Model.Products" class="form-select" required><option value="">เลือกสินค้า</option></select></div>
-            <div class="col-md-3"><label asp-for="EffDateFrom" class="form-label">วันที่เริ่มใช้ <span class="text-danger">*</span></label><input asp-for="EffDateFrom" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" min="1753-01-01" max="9999-12-31" required /></div>
-            <div class="col-md-3"><label asp-for="EffDateTo" class="form-label">วันที่สิ้นสุด <span class="text-danger">*</span></label><input asp-for="EffDateTo" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" min="1753-01-01" max="9999-12-31" required /></div>
+            <div class="col-md-6">
+                <label for="productFilter" class="form-label">สินค้า <span class="text-danger">*</span></label>
+                <div class="position-relative" id="productPicker">
+                    <input id="productFilter" type="text" class="form-select" placeholder="เลือกสินค้า หรือพิมพ์รหัส/ชื่อสินค้า" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="productChoices" autocomplete="off" required />
+                    <div id="productChoices" class="dropdown-menu w-100 overflow-auto" role="listbox" aria-label="สินค้า" style="max-height: 260px;"></div>
+                </div>
+                <select asp-for="ProductID" asp-items="Model.Products" hidden aria-hidden="true" tabindex="-1"><option value="">เลือกสินค้า</option></select>
+            </div>
+            <div class="col-md-3"><label asp-for="EffDateFrom" class="form-label">วันที่เริ่มใช้ <span class="text-danger">*</span></label><input asp-for="EffDateFrom" type="text" asp-format="{0:dd/MM/yyyy}" class="form-control" placeholder="dd/MM/yyyy" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" maxlength="10" required /></div>
+            <div class="col-md-3"><label asp-for="EffDateTo" class="form-label">วันที่สิ้นสุด <span class="text-danger">*</span></label><input asp-for="EffDateTo" type="text" asp-format="{0:dd/MM/yyyy}" class="form-control" placeholder="dd/MM/yyyy" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" maxlength="10" required /></div>
         </div>
     </div>
     <div class="card-footer d-flex justify-content-end gap-2"><a asp-controller="LicensePlate" asp-action="Index" class="btn btn-outline-secondary">ยกเลิก</a><button type="submit" class="btn btn-primary">บันทึก</button></div>
@@ -42,7 +49,7 @@
 <div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 class="modal-title fs-5" id="deleteProductTitle">ยืนยันการลบรายการสินค้า</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการยกเลิกรายการสินค้านี้หรือไม่?</div>
+        <div class="modal-body">ต้องการยกเลิกรายการสินค้า ID <strong id="deleteId"></strong> ชื่อ <strong id="deleteName"></strong> หรือไม่?</div>
         <form id="deleteProductForm" method="post">
             <input type="hidden" name="licensePlateID" value="@Model.LicensePlateID" /><input type="hidden" id="deleteProductId" name="id" />
             <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button type="submit" class="btn btn-danger">ลบรายการสินค้า</button></div>
@@ -57,6 +64,103 @@
     const token = $('input[name="__RequestVerificationToken"]').first().val();
     const parent = @Model.LicensePlateID;
     let page = 1, rows = [];
+    const productSelect = document.getElementById('ProductID');
+    const productOptions = Array.from(productSelect.options).filter(option => option.value && !option.disabled);
+    const productInput = document.getElementById('productFilter');
+    const productChoices = $('#productChoices');
+    let activeProduct = -1;
+    function closeProducts() {
+        productChoices.removeClass('show');
+        $(productInput).attr('aria-expanded', 'false').removeAttr('aria-activedescendant');
+        activeProduct = -1;
+    }
+    function filterProducts(showAll = false) {
+        const query = productInput.value.trim().toLocaleLowerCase();
+        const matches = productOptions.filter(option => showAll || option.textContent.toLocaleLowerCase().includes(query));
+        productChoices.empty();
+        activeProduct = -1;
+        $(productInput).attr('aria-expanded', 'true').removeAttr('aria-activedescendant');
+        matches.forEach((option, index) => {
+            $('<div class="dropdown-item text-wrap" role="option">')
+                .attr({ id: 'productChoice' + index, 'aria-selected': String(option.value === productSelect.value) })
+                .text(option.textContent)
+                .on('pointerdown', event => event.preventDefault())
+                .on('click', () => selectProduct(option.value))
+                .appendTo(productChoices);
+        });
+        if (!matches.length) $('<div class="dropdown-item-text text-muted" role="status">').text('ไม่พบสินค้าที่ตรงกับคำค้น').appendTo(productChoices);
+        productChoices.addClass('show');
+    }
+    function selectProduct(id) {
+        const option = productOptions.find(option => option.value === String(id));
+        productSelect.value = option?.value || '';
+        productInput.value = option?.textContent || '';
+        productInput.setCustomValidity('');
+        closeProducts();
+    }
+    selectProduct(productSelect.value);
+    $(productInput).on('focus click', () => filterProducts(Boolean(productSelect.value))).on('input', () => {
+        const option = productOptions.find(option => option.textContent === productInput.value);
+        productSelect.value = option?.value || '';
+        productInput.setCustomValidity(productInput.value && !option ? 'กรุณาเลือกสินค้าจากรายการ' : '');
+        filterProducts();
+    }).on('blur', closeProducts).on('keydown', event => {
+        if (event.key === 'Escape') { closeProducts(); return; }
+        if (event.key === 'Tab') { closeProducts(); return; }
+        if (event.key === 'Enter' && productChoices.hasClass('show')) {
+            event.preventDefault();
+            if (activeProduct >= 0) productChoices.children('[role="option"]').eq(activeProduct).trigger('click');
+            return;
+        }
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        if (!productChoices.hasClass('show')) filterProducts(Boolean(productSelect.value));
+        const options = productChoices.children('[role="option"]');
+        if (!options.length) return;
+        activeProduct = activeProduct < 0
+            ? (event.key === 'ArrowDown' ? 0 : options.length - 1)
+            : (activeProduct + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+        options.removeClass('active').attr('aria-selected', 'false');
+        const active = options.eq(activeProduct).addClass('active').attr('aria-selected', 'true');
+        $(productInput).attr('aria-activedescendant', active.attr('id'));
+        active[0].scrollIntoView({ block: 'nearest' });
+    });
+    function displayDate(value) {
+        if (!value) return '';
+        const [year, month, day] = value.slice(0, 10).split('-');
+        return `${day}/${month}/${year}`;
+    }
+    function apiDate(value) {
+        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+        if (!match) return null;
+        const [, day, month, year] = match;
+        const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+        if (Number(year) < 1753 || date.getUTCFullYear() !== Number(year) || date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day)) return null;
+        return `${year}-${month}-${day}`;
+    }
+    function validateDate(input) {
+        input.setCustomValidity(input.value && !apiDate(input.value) ? 'กรุณาระบุวันที่ที่ถูกต้องในรูปแบบ dd/MM/yyyy (ค.ศ. 1753–9999)' : '');
+        document.getElementById(input.id + 'Calendar').value = apiDate(input.value) || '';
+    }
+    $('#EffDateFrom, #EffDateTo').each(function() {
+        const textInput = this;
+        const label = textInput.id === 'EffDateFrom' ? 'เลือกวันที่เริ่มใช้' : 'เลือกวันที่สิ้นสุด';
+        const group = $('<div class="input-group">');
+        $(textInput).wrap(group);
+        const calendar = $('<input type="date" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" min="1753-01-01" max="9999-12-31">')
+            .attr({ id: textInput.id + 'Calendar', 'aria-label': label })
+            .val(apiDate(textInput.value) || '')
+            .on('click', function() { if (typeof this.showPicker === 'function') this.showPicker(); })
+            .on('change', function() {
+                textInput.value = displayDate(this.value);
+                $(textInput).trigger('input').trigger('change');
+            });
+        $('<span class="input-group-text position-relative">')
+            .append('<i class="fa-solid fa-calendar-days" aria-hidden="true"></i>')
+            .append(calendar)
+            .appendTo($(textInput).parent());
+    });
+    $('#EffDateFrom, #EffDateTo').on('input change', function() { validateDate(this); });
     const message = (text, error = true) => $('#productMessage').removeClass('d-none alert-danger alert-success').addClass(error ? 'alert-danger' : 'alert-success').text(text);
     function load() {
         return $.getJSON(api + 'Search', { LicensePlateID: parent, Page: page, PerPage: 10, TextSearch: $('#productSearch').val(), DataStatus: $('#productStatus').val() }).done(response => {
@@ -64,10 +168,11 @@
             const body = $('#productRows').empty();
             rows.forEach(row => {
                 const tr = $('<tr>');
-                [row.productCode, row.productName, row.effDateFrom?.slice(0,10), row.effDateTo?.slice(0,10), row.dataStatus === 'A' ? 'ใช้งานอยู่' : 'ยกเลิก'].forEach(value => $('<td>').text(value ?? '—').appendTo(tr));
+                [row.productCode, row.productName, displayDate(row.effDateFrom) || '—', displayDate(row.effDateTo) || '—', row.dataStatus === 'A' ? 'ใช้งานอยู่' : 'ยกเลิก'].forEach(value => $('<td>').text(value ?? '—').appendTo(tr));
                 const actions = $('<td>').appendTo(tr);
                 $('<button type="button" class="btn btn-sm btn-outline-primary me-2">แก้ไข</button>').on('click', () => {
-                    $('#recordId').val(row.id); $('#ProductID').val(row.productID); $('#EffDateFrom').val(row.effDateFrom.slice(0,10)); $('#EffDateTo').val(row.effDateTo.slice(0,10));
+                    $('#recordId').val(row.id); selectProduct(row.productID); $('#EffDateFrom').val(displayDate(row.effDateFrom)); $('#EffDateTo').val(displayDate(row.effDateTo));
+                    $('#EffDateFrom, #EffDateTo').each(function() { validateDate(this); });
                 }).appendTo(actions);
                 if (row.dataStatus === 'A') $('<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteProductModal">ลบ</button>').attr('data-id', row.id).appendTo(actions);
                 body.append(tr);
@@ -80,14 +185,22 @@
     $('#searchProducts, #productStatus').on('click change', function(event) { if ((this.id === 'searchProducts' && event.type === 'click') || (this.id === 'productStatus' && event.type === 'change')) { page = 1; load(); } });
     $('#previousPage').on('click', () => { page--; load(); }); $('#nextPage').on('click', () => { page++; load(); });
     $('#productForm').on('submit', function(event) {
-        event.preventDefault(); if (!this.reportValidity()) return;
+        event.preventDefault();
+        $('#EffDateFrom, #EffDateTo').each(function() { validateDate(this); });
+        if (!this.reportValidity()) return;
         const button = $(this).find('button[type="submit"]').prop('disabled',true);
         const id = Number($('#recordId').val());
-        $.ajax({ url: api + 'Save', method:'POST', contentType:'application/json', headers:{ RequestVerificationToken: token }, data:JSON.stringify({ ID:id, LicensePlateID:parent, ProductID:Number($('#ProductID').val()), EffDateFrom:$('#EffDateFrom').val(), EffDateTo:$('#EffDateTo').val(), DataStatus:rows.find(row => row.id === id)?.dataStatus || 'A' }) })
+        $.ajax({ url: api + 'Save', method:'POST', contentType:'application/json', headers:{ RequestVerificationToken: token }, data:JSON.stringify({ ID:id, LicensePlateID:parent, ProductID:Number($('#ProductID').val()), EffDateFrom:apiDate($('#EffDateFrom').val()), EffDateTo:apiDate($('#EffDateTo').val()), DataStatus:rows.find(row => row.id === id)?.dataStatus || 'A' }) })
             .done(() => { $('#recordId').val(0); message('บันทึกเรียบร้อยแล้ว',false); load(); })
-            .fail(xhr => message(xhr.responseJSON?.Message || 'บันทึกไม่สำเร็จ')).always(() => button.prop('disabled',false));
+            .fail(xhr => message(SetupApi.saveError(xhr))).always(() => button.prop('disabled',false));
     });
-    document.getElementById('deleteProductModal').addEventListener('show.bs.modal', event => $('#deleteProductId').val(event.relatedTarget.dataset.id));
+    document.getElementById('deleteProductModal').addEventListener('show.bs.modal', event => {
+        const id = event.relatedTarget.dataset.id;
+        const row = rows.find(item => Number(item.id) === Number(id));
+        $('#deleteProductId').val(id);
+        $('#deleteId').text(id);
+        $('#deleteName').text(row?.productName || '—');
+    });
     $('#deleteProductForm').on('submit', function(event) {
         event.preventDefault(); const button = $(this).find('button[type="submit"]').prop('disabled',true);
         $.ajax({ url:api+'Delete', method:'DELETE', contentType:'application/json', headers:{RequestVerificationToken:token}, data:JSON.stringify({ID:Number($('#deleteProductId').val())}) })

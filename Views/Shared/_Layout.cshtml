@@ -20,8 +20,8 @@
         "LicensePlate" => "ทะเบียนรถ",
         "ProductType" => "กลุ่มสินค้า",
         "Product" => "ทะเบียนสินค้า",
-        "Constant" => "ข้อมูล IP Adress และค่าคงที่ของระบบ",
-        "URLSetting" => "ข้อมูล API URL ที่เกี่ยวข้อง",
+        "Constant" => "IP Adress และค่าคงที่",
+        "URLSetting" => "API/URL ที่เกี่ยวข้อง",
         _ => "โรงงาน/บริษัท"
     };
 }
@@ -71,17 +71,17 @@
                     }),
                     (Title: "ตั้งค่า", Items: new[]
                     {
-                        (Controller: "Constant", Label: "ข้อมูล IP Adress และค่าคงที่ของระบบ", Icon: "fa-network-wired", Available: true),
-                        (Controller: "URLSetting", Label: "ข้อมูล API URL ที่เกี่ยวข้อง", Icon: "fa-globe", Available: true),
+                        (Controller: "Constant", Label: "IP Adress และค่าคงที่", Icon: "fa-network-wired", Available: true),
+                        (Controller: "URLSetting", Label: "API/URL ที่เกี่ยวข้อง", Icon: "fa-globe", Available: true),
                         (Controller: "ProgramType", Label: "ประเภทโปรแกรมชั่ง", Icon: "fa-file-code", Available: true),
                         (Controller: "WeightType", Label: "ประเภทการชั่ง", Icon: "fa-down-left-and-up-right-to-center", Available: true),
                         (Controller: "Notification", Label: "การแจ้งเตือน", Icon: "fa-bell", Available: true)
                     }),
                     (Title: "ระบบรักษาความปลอดภัย", Items: new[]
-                    {
-                        (Controller: "User", Label: "ข้อมูลผู้ใช้งาน", Icon: "fa-user-gear", Available: true),
+                    {                    
                         (Controller: "Role", Label: "กลุ่มผู้ใช้งาน", Icon: "fa-users-gear", Available: true),
-                        (Controller: "Permission", Label: "กำหนดสิทธิ์", Icon: "fa-unlock-keyhole", Available: true)
+                        (Controller: "Permission", Label: "กำหนดสิทธิ์", Icon: "fa-unlock-keyhole", Available: true),
+                        (Controller: "User", Label: "ข้อมูลผู้ใช้งาน", Icon: "fa-user-gear", Available: true)
                     })
                 };
             }

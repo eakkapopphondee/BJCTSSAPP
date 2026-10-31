@@ -98,7 +98,7 @@
             headers: { RequestVerificationToken: $(this).find('input[name="__RequestVerificationToken"]').val() },
             data: JSON.stringify({ RoleID: @Model.Id, Permissions: editableRows().map(row => ({ MenuID: row.menuID, AccessFlag: row.accessFlag, ExportFlag: row.exportFlag })) })
         }).done(() => { saved = true; success.show(); })
-            .fail(xhr => $('#errorMessage').removeClass('d-none').text(xhr.responseJSON?.Message || 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่'))
+            .fail(xhr => SetupApi.showSaveError(xhr))
             .always(() => { busy = false; sync(); });
     });
     load();

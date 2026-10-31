@@ -3,6 +3,18 @@
 
             const token = $('input[name="__RequestVerificationToken"]').val();
             const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            const printFlag = document.getElementById('PrintFlag');
+            const printCopy = document.getElementById('PrintCopy');
+            function syncPrintCopy() {
+                printCopy.disabled = !printFlag.checked;
+                if (!printFlag.checked) printCopy.value = '0';
+            }
+            printFlag.addEventListener('change', () => {
+                if (printFlag.checked) printCopy.value = '1';
+                syncPrintCopy();
+            });
+            if (printFlag.checked && (printCopy.value === '' || printCopy.value === '0')) printCopy.value = '1';
+            syncPrintCopy();
             const input = document.getElementById('LogoPathFile');
             const preview = document.getElementById('logoPreview');
             const initialLogo = preview.src;
@@ -42,18 +54,26 @@
 
             function showError(xhr) {
                 const errors = Object.values(xhr.responseJSON?.errors || {}).flat().join(' ');
-                const message = xhr.responseJSON?.Message || errors || xhr.responseJSON?.detail || xhr.responseJSON?.title || 'Unable to save data.';
+                let message = xhr.responseJSON?.Message || errors || xhr.responseJSON?.detail || xhr.responseJSON?.title || 'Unable to save data.';
+                if (message.includes('duplicate active FactoryCode')) {
+                    message = 'บันทึกไม่ได้: รหัสบริษัทซ้ำ';
+                } else if (message.includes('duplicate active FactoryDesc')) {
+                    message = 'บันทึกไม่ได้: ชื่อบริษัทซ้ำ';
+                }
                 $('#errorMessage').removeClass('d-none').text(message);
+                document.getElementById('errorMessage').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
 
             $('#factoryForm').on('submit', function (event) {
                 event.preventDefault();
+                syncPrintCopy();
                 if (checkingLogo || !this.reportValidity()) return;
                 $('#errorMessage').addClass('d-none');
                 const button = $('#btnSave').prop('disabled', true);
 
                 const formData = new FormData(this);
-                formData.set('PrintFlag', document.getElementById('PrintFlag').checked ? 'Y' : 'N');
+                formData.set('PrintFlag', printFlag.checked ? 'Y' : 'N');
+                formData.set('PrintCopy', printFlag.checked ? printCopy.value : '0');
                 $.ajax({
                     url: '@Url.Content("~/v1/Setup/Factory/Save")',
                     method: 'POST',

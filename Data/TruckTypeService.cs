@@ -60,7 +60,7 @@ public sealed partial class TruckTypeService(ISqlDataAccess dataAccess, SqlObjec
                 (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssTruckType].[CreateUserID]) AS [CreateUserName],
                 (SELECT u.[UserFullName] FROM {sqlObjects.Prefix}.[tsssUser] u WHERE u.[ID] = [tsssTruckType].[UpdateUserID]) AS [UpdateUserName]
             {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [TruckTypeName] ASC, [TruckTypeCode] ASC, [ID] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

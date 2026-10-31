@@ -18,6 +18,8 @@ public sealed partial class URLSettingService
     {
         var model = new URLSettingViewModel();
         await LoadOptions(model, true, cancellationToken);
+        if (model.Factories.Count == 1)
+            model.FactoryCode = model.Factories[0].Value;
         return model;
     }
 

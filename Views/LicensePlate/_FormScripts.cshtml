@@ -1,4 +1,21 @@
 <script src="~/js/setup-api.js" asp-append-version="true"></script>
 <script>
+(() => {
+    function bindPlateNumber(letterId, numberId, combinedId) {
+        const letter = document.getElementById(letterId);
+        const number = document.getElementById(numberId);
+        const combined = document.getElementById(combinedId);
+        function update() {
+            combined.value = [letter.value.trim(), number.value.trim()].filter(Boolean).join('-');
+        }
+        [letter, number].forEach(input => {
+            input.addEventListener('input', update);
+            input.addEventListener('change', update);
+        });
+        update();
+    }
+    bindPlateNumber('PlateLetterSection', 'PlateNumberSection', 'PlateNumber');
+    bindPlateNumber('TrailerLetterSection', 'TrailerNumberSection', 'TrailerNumber');
+})();
 SetupApi.bindForm({ form: '#licensePlateForm', url: '@Url.Content("~/v1/Setup/LicensePlate/Save")', numbers: ['Id', 'TruckTypeID', 'PlateProvinceID', 'TrailerProviceID', 'TransportCompanyID'], flags: [] });
 </script>

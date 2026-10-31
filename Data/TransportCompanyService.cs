@@ -59,7 +59,7 @@ public sealed partial class TransportCompanyService(ISqlDataAccess dataAccess, S
         var extra = string.Concat(entity.LookupFields.Select(field => $", [{field}]"));
         var table = await dataAccess.SelectAsync($"""
             SELECT {entity.ColumnList}{extra} {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [TransportCompanyName] ASC, [TransportCompanyCode] ASC, [ID] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

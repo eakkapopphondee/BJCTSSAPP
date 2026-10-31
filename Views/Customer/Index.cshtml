@@ -4,7 +4,7 @@
 <div class="page-heading d-flex flex-wrap align-items-center justify-content-between gap-2">
     <div class="d-flex align-items-center gap-2"><h1 class="mb-0">ข้อมูลลูกค้า</h1><span class="factory-total"><span id="customerCount" aria-live="polite">—</span> รายการ</span></div>
     <div class="d-flex flex-column align-items-end gap-1">
-        <small class="text-muted text-end">Import รองรับไฟล์ .xlsx ขนาดไม่เกิน 5 MB และข้อมูล 1–5,000 แถว</small>
+        <small class="import-file-hint text-end">Import รองรับไฟล์ .xlsx ขนาดไม่เกิน 5 MB และข้อมูล 1–5,000 แถว</small>
         <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
             <a class="btn btn-primary btn-add" href="@Url.Action("Create", "Customer")">＋ เพิ่มลูกค้า</a>
             <button id="btnTemplate" type="button" class="btn btn-outline-primary">↓ ดาวน์โหลด Excel template</button>
@@ -17,7 +17,7 @@
 <span id="connectionStatus" class="visually-hidden" role="status">กำลังเชื่อมต่อฐานข้อมูล...</span>
 <div class="card">
     <div class="search-toolbar">
-        <div class="search-field"><label for="searchBox" class="visually-hidden">ค้นหาลูกค้า</label><span class="search-symbol" aria-hidden="true">⌕</span><input id="searchBox" type="search" class="form-control" placeholder="ค้นหารหัสลูกค้า ชื่อลูกค้า รหัส SAP หรือชื่อลูกค้าใน SAP" /></div>
+        <div class="search-field"><label for="searchBox" class="visually-hidden">ค้นหาลูกค้า</label><span class="search-symbol" aria-hidden="true">⌕</span><input id="searchBox" type="search" class="form-control" placeholder="ค้นหารหัสลูกค้า ชื่อลูกค้า เบอร์โทรศัพท์ รหัส SAP หรือชื่อลูกค้าใน SAP" /></div>
         <label for="dataStatusFilter" class="visually-hidden">สถานะ</label>
         <select id="dataStatusFilter" class="form-select status-filter"><option value="L">ทั้งหมด</option><option value="A" selected>ใช้งานอยู่</option><option value="C">ยกเลิก</option></select>
         <button id="btnSearch" type="button" class="btn btn-outline-primary">ค้นหา</button>
@@ -51,7 +51,7 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบลูกค้า</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบข้อมูลลูกค้า <strong id="deleteId"></strong> หรือไม่? การลบนี้จะนำข้อมูลออกจากระบบถาวร</div>
+        <div class="modal-body">ต้องการลบข้อมูลลูกค้า รหัส <strong id="deleteCode"></strong> ชื่อ <strong id="deleteName"></strong> หรือไม่?</div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบลูกค้า</button></div>
     </div></div>
 </div>
@@ -123,7 +123,7 @@
             .finally(() => button.prop("disabled", false));
     });
     $('#btnTemplate').on('click', () => ExcelExport.download(importFields, [], 'customer-import-template.xlsx', {
-        textColumns: true, requiredHeaders: ['CustomerCode', 'CustomerName', 'Address1', 'PhoneNumber']
+        localizeHeaders: false, textColumns: true, requiredHeaders: ['CustomerCode', 'CustomerName', 'Address1', 'PhoneNumber']
     }));
     $('#btnImport').on('click', () => $('#importFile').trigger('click'));
     $('#importFile').on('change', function () {
@@ -170,7 +170,11 @@
     $('#dataStatusFilter, #pageSize').on('change', () => loadRows(1));
     $('#pagination').on('click', '.page-link:not(:disabled)', function () { loadRows(Number($(this).data('page'))); });
     $('#customerTable').on('click', '.btn-delete', function () {
-        deleteId = $(this).data('id'); $('#deleteId').text(deleteId); modal.show();
+        deleteId = $(this).data('id');
+        const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
+        $('#deleteCode').text(row?.customerCode || '—');
+        $('#deleteName').text(row?.customerName || '—');
+        modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {
         if (deleteId === null) return;

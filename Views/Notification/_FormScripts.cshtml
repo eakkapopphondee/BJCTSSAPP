@@ -1,3 +1,4 @@
+<script src="~/js/setup-api.js" asp-append-version="true"></script>
 <script>
 (() => {
     const integerFields = ['Id'];
@@ -5,6 +6,29 @@
     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
     const timeInput = document.getElementById('NotificationTime');
     const initialTimeValue = timeInput.value;
+    const dateInput = document.getElementById('NotificationDate');
+    const dateDisplay = document.querySelector('[data-notification-date-display]');
+    function refreshNotificationDate() {
+        const parts = dateInput.value.split('-');
+        dateDisplay.value = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : '';
+    }
+    dateInput.addEventListener('input', refreshNotificationDate);
+    dateInput.addEventListener('change', refreshNotificationDate);
+    dateInput.addEventListener('click', () => {
+        if (typeof dateInput.showPicker === 'function') dateInput.showPicker();
+    });
+    dateInput.addEventListener('focus', () => dateDisplay.classList.add('border-primary'));
+    dateInput.addEventListener('blur', () => dateDisplay.classList.remove('border-primary'));
+    refreshNotificationDate();
+    const triggerOptions = Array.from(document.querySelectorAll('input[name="TriggerType"]'));
+    function refreshTriggerRequired() {
+        triggerOptions[0].required = !triggerOptions.some(option => option.checked);
+    }
+    triggerOptions.forEach(option => option.addEventListener('change', () => {
+        if (option.checked) triggerOptions.forEach(other => { if (other !== option) other.checked = false; });
+        refreshTriggerRequired();
+    }));
+    refreshTriggerRequired();
     function refreshEmpty() {
         $('.recipient-section').each(function () {
             $(this).find('.recipient-empty').toggle($(this).find('tbody tr').length === 0);
@@ -37,6 +61,7 @@
             if (name === '__RequestVerificationToken') return;
             payload[name] = value === '' ? null : integerFields.includes(name) ? Number(value) : value;
         });
+        payload.NotificationDate += 'T00:00:00';
         payload.ToRecipients = recipients('to');
         payload.CcRecipients = recipients('cc');
         // HTML time inputs support milliseconds; preserve SQL time(7) when unchanged.
@@ -50,11 +75,8 @@
             method: 'POST', contentType: 'application/json',
             headers: { 'RequestVerificationToken': token }, data: JSON.stringify(payload)
         }).done(() => { saved = true; successModal.show(); })
-          .fail(xhr => {
-              const problem = xhr.responseJSON;
-              const errors = problem?.errors ? Object.values(problem.errors).flat().join('\n') : '';
-              $('#errorMessage').removeClass('d-none').text(errors || problem?.detail || 'ไม่สามารถบันทึกข้อมูลการแจ้งเตือนของระบบได้ กรุณาลองใหม่');
-          }).always(() => button.prop('disabled', saved));
+          .fail(xhr => SetupApi.showSaveError(xhr))
+          .always(() => button.prop('disabled', saved));
     });
 })();
 </script>

@@ -20,7 +20,7 @@ public sealed partial class ProductTypeService(ISqlDataAccess dataAccess, SqlObj
                 new("ProductTypeName", SqlDbType.NVarChar, 200, false, 0, 0),
                 new("SAPCode", SqlDbType.NVarChar, 50, true, 0, 0),
                 new("SAPDesc", SqlDbType.NVarChar, 250, true, 0, 0),
-                new("Remark", SqlDbType.NVarChar, 250, false, 0, 0),
+                new("Remark", SqlDbType.NVarChar, 250, true, 0, 0),
                 new("DataStatus", SqlDbType.Char, 1, false, 0, 0),
                 new("CreateUserID", SqlDbType.Int, 0, false, 10, 0),
                 new("CreateUserDate", SqlDbType.DateTime, 0, false, 0, 0),
@@ -59,7 +59,7 @@ public sealed partial class ProductTypeService(ISqlDataAccess dataAccess, SqlObj
         var extra = string.Concat(entity.LookupFields.Select(field => $", [{field}]"));
         var table = await dataAccess.SelectAsync($"""
             SELECT {entity.ColumnList}{extra} {entity.SearchFrom(sqlObjects.Prefix)} {entity.SearchWhere}
-            ORDER BY [ID] DESC {pagination};
+            ORDER BY [ID] ASC {pagination};
             """, [.. Filters(entity, request), .. paginationParameters], cancellationToken);
         return table.Rows.Cast<DataRow>().Select(SqlValues.ToRecord).ToList();
     }

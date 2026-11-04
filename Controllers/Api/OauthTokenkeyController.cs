@@ -11,7 +11,7 @@ namespace thaibev.Controllers.Api;
 [Route("v1/api/Oauth/Tokenkey")]
 public sealed class OauthTokenkeyController(OauthTokenkeyService service) : ControllerBase
 {
-    [HttpPost]
+    [HttpGet]
     [Consumes("application/json")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Create([FromBody] OauthTokenkeyRequest request, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ namespace thaibev.Controllers.Api;
 [Route("v1/api/Oauth/Access")]
 public sealed class OauthAccessController(AccessTokenService service) : ControllerBase
 {
-    [HttpPost]
+    [HttpGet]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Create(CancellationToken cancellationToken)
     {

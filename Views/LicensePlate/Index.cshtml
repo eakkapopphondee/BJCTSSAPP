@@ -34,7 +34,14 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
         <div class="modal-header"><h2 id="deleteModalLabel" class="modal-title fs-5">ยืนยันการลบทะเบียนรถ</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button></div>
-        <div class="modal-body">ต้องการลบข้อมูลทะเบียนรถ หมายเลขทะเบียน <strong id="deletePlateNumber"></strong> หรือไม่?</div>
+        <div class="modal-body">
+            <p>ต้องการลบข้อมูลทะเบียนรถต่อไปนี้หรือไม่?</p>
+            <div>ทะเบียนรถ: <strong id="deletePlateNumber"></strong> จังหวัด: <strong id="deletePlateProvince"></strong></div>
+            <div>
+                <span id="deleteTrailerNumberRow" class="d-none">ทะเบียนพ่วง: <strong id="deleteTrailerNumber"></strong></span>
+                <span id="deleteTrailerProvinceRow" class="d-none">จังหวัดทะเบียนพ่วง: <strong id="deleteTrailerProvince"></strong></span>
+            </div>
+        </div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ย้อนกลับ</button><button id="btnConfirmDelete" type="button" class="btn btn-danger">ลบทะเบียนรถ</button></div>
     </div></div>
 </div>
@@ -158,6 +165,13 @@
         deleteId = $(this).data('id');
         const row = visibleRows.find(item => Number(item.id) === Number(deleteId));
         $('#deletePlateNumber').text(row?.plateNumber || '—');
+        $('#deletePlateProvince').text(row?.plateProvinceName || '—');
+        const trailerNumber = row?.trailerNumber?.trim() || '';
+        const trailerProvince = row?.trailerProvinceName?.trim() || '';
+        $('#deleteTrailerNumber').text(trailerNumber);
+        $('#deleteTrailerProvince').text(trailerProvince);
+        $('#deleteTrailerNumberRow').toggleClass('d-none', !trailerNumber);
+        $('#deleteTrailerProvinceRow').toggleClass('d-none', !trailerProvince);
         modal.show();
     });
     $('#btnConfirmDelete').on('click', function () {

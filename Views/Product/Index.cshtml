@@ -66,7 +66,7 @@
     const importModal = new bootstrap.Modal(document.getElementById('importResultModal'));
     const token = $('input[name="__RequestVerificationToken"]').val();
     const display = value => $('<div>').text(value ?? '').html();
-    const importFields = ['ProductTypeID', 'ProductCode', 'ProductName', 'SAPCode', 'SAPDesc', 'UnitPrice', 'StdWeight', 'Remark', 'TBRDefaultFlag', 'DataStatus'];
+    const importFields = ['ProductTypeCode', 'ProductCode', 'ProductName', 'SAPCode', 'SAPDesc', 'UnitPrice', 'StdWeight', 'Remark', 'TBRDefaultFlag', 'DataStatus'];
     let importResults = [], importedRows = [];
     function message(text, type = 'danger') {
         $('#alertMessage').removeClass('d-none alert-danger alert-success').addClass(`alert-${type}`).text(text);
@@ -119,14 +119,14 @@
         $('#pagination').html(`<li class="page-item ${page <= 1 ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page - 1}" aria-label="หน้าก่อนหน้า" ${page <= 1 ? 'disabled' : ''}>‹</button></li><li class="page-position">${page} / ${totalPages}</li><li class="page-item ${page >= totalPages ? 'disabled' : ''}"><button class="page-link" type="button" data-page="${page + 1}" aria-label="หน้าถัดไป" ${page >= totalPages ? 'disabled' : ''}>›</button></li>`);
     }
     $('#btnExport').on('click', () => {
-        const fields = ['id', 'productCode', 'productName', 'sapCode', 'sapDesc', 'productTypeName', 'unitPrice', 'stdWeight', 'tbrDefaultFlag', 'remark', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
+        const fields = ['id', 'productCode', 'productName', 'sapCode', 'sapDesc', 'productTypeCode', 'productTypeName', 'unitPrice', 'stdWeight', 'tbrDefaultFlag', 'remark', 'dataStatus', 'createUserID', 'createUserDate', 'updateUserID', 'updateUserDate'];
         const button = $("#btnExport").prop("disabled", true);
         ExcelExport.downloadSearch(fields, '@Url.Content("~/v1/Setup/Product/Search")', { TextSearch: $('#searchBox').val(), DataStatus: $('#dataStatusFilter').val() }, `product.xlsx`)
             .catch(() => message("ไม่สามารถส่งออก Excel ได้ กรุณาลองใหม่"))
             .finally(() => button.prop("disabled", false));
     });
     $('#btnTemplate').on('click', () => ExcelExport.download(importFields, [], 'product-import-template.xlsx', {
-        localizeHeaders: false, textColumns: true, requiredHeaders: ['ProductTypeID', 'ProductCode', 'ProductName', 'UnitPrice', 'StdWeight']
+        localizeHeaders: false, textColumns: true, requiredHeaders: ['ProductTypeCode', 'ProductCode', 'ProductName', 'UnitPrice', 'StdWeight']
     }));
     $('#btnImport').on('click', () => $('#importFile').trigger('click'));
     $('#importFile').on('change', function () {

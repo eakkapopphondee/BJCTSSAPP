@@ -10,7 +10,7 @@ public static class ProductExcelParser
 {
     public static readonly string[] Columns =
     [
-        "ProductTypeID", "ProductCode", "ProductName", "SAPCode", "SAPDesc", "UnitPrice", "StdWeight",
+        "ProductTypeCode", "ProductCode", "ProductName", "SAPCode", "SAPDesc", "UnitPrice", "StdWeight",
         "Remark", "TBRDefaultFlag", "DataStatus"
     ];
 
@@ -65,8 +65,6 @@ public static class ProductExcelParser
                 cells.TryGetValue(columnIndex, out var value);
                 if (string.IsNullOrWhiteSpace(value))
                     item[field] = field switch { "TBRDefaultFlag" => "N", "DataStatus" => "A", _ => null };
-                else if (field == "ProductTypeID" && int.TryParse(value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var typeId))
-                    item[field] = typeId;
                 else if (field is "UnitPrice" or "StdWeight" &&
                     decimal.TryParse(value.Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
                     item[field] = amount;

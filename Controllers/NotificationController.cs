@@ -327,7 +327,7 @@ public sealed class NotificationController(ISqlDataAccess dataAccess, SqlObjectN
         }).ToArray();
         var table = await dataAccess.SelectAsync($"""
             SELECT {SelectColumns} FROM {TableName} {whereClause}
-            ORDER BY [ID] ASC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+            ORDER BY [NotificationNo] DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
             """, parameters, cancellationToken);
         return (table.Rows.Cast<DataRow>().Select(ToModel).ToList(), page, pageSize, totalCount, totalPages);
     }

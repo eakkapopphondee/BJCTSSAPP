@@ -103,6 +103,24 @@ public sealed partial class LicensePlateService(ISqlDataAccess dataAccess, SqlOb
     {
         var entity = Entity;
         var input = InputValidation.ReadObject(body);
+        if (webUser is not null)
+        {
+            // The Web form derives the full plate from its two required, whitespace-free sections.
+            foreach (var (letterField, numberField, combinedField) in new[]
+            {
+                ("PlateLetterSection", "PlateNumberSection", "PlateNumber"),
+                ("TrailerLetterSection", "TrailerNumberSection", "TrailerNumber")
+            })
+            {
+                foreach (var field in new[] { letterField, numberField })
+                {
+                    if (!input.TryGetValue(field, out var section) || section.ValueKind != JsonValueKind.String ||
+                        string.IsNullOrEmpty(section.GetString()) || section.GetString()!.Any(char.IsWhiteSpace))
+                        throw new ValidationException($"{field} is required and must not contain whitespace.");
+                }
+                input[combinedField] = JsonSerializer.SerializeToElement(input[letterField].GetString() + input[numberField].GetString());
+            }
+        }
         var id = input.TryGetValue("ID", out var idValue) ? (int?)SqlValues.Read(new("ID", SqlDbType.Int), idValue) ?? 0 : 0;
         if (id < 0) throw new ValidationException("ID must be zero or a positive integer.");
         var values = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { ["ID"] = id };

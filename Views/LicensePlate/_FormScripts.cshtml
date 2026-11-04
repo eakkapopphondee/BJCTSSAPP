@@ -6,7 +6,9 @@
         const number = document.getElementById(numberId);
         const combined = document.getElementById(combinedId);
         function update() {
-            combined.value = [letter.value.trim(), number.value.trim()].filter(Boolean).join('-');
+            letter.value = letter.value.replace(/\s/g, '');
+            number.value = number.value.replace(/\s/g, '');
+            combined.value = letter.value + number.value;
         }
         [letter, number].forEach(input => {
             input.addEventListener('input', update);

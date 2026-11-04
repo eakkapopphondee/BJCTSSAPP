@@ -7,7 +7,7 @@ namespace thaibev.Controllers.Api;
 
 [ApiController]
 [ApiAccess(AllowUnauthenticatedExternal = true)]
-[Route("v1/Auth/Oauth/Access")]
+[Route("v1/api/Oauth/Access")]
 public sealed class OauthAccessController(AccessTokenService service) : ControllerBase
 {
     [HttpPost]

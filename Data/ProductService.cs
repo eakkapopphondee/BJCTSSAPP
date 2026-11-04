@@ -30,7 +30,7 @@ public sealed partial class ProductService(ISqlDataAccess dataAccess, SqlObjectN
                 new("CreateUserDate", SqlDbType.DateTime, 0, false, 0, 0),
                 new("UpdateUserID", SqlDbType.Int, 0, true, 10, 0),
                 new("UpdateUserDate", SqlDbType.DateTime, 0, true, 0, 0),
-            ], ["ProductCode", "ProductName"], ["ProductTypeName"]);
+            ], ["ProductCode", "ProductName"], ["ProductTypeCode", "ProductTypeName"]);
 
     public async Task<ProductPage> SearchAsync(ProductSearchRequest request, CancellationToken cancellationToken)
     {
@@ -83,9 +83,8 @@ public sealed partial class ProductService(ISqlDataAccess dataAccess, SqlObjectN
         var entity = Entity;
         var metadata = new Dictionary<string, object?>();
         if (pagination is not null) metadata["Pagination"] = pagination;
-        if (entity.LookupFields.Length > 0)
-            metadata["Lookups"] = rows.Select(row => row.Where(pair => pair.Key == "ID" || entity.LookupFields.Contains(pair.Key)).ToDictionary());
-        var records = rows.Select(row => entity.Columns.ToDictionary(column => column.Name, column => row[column.Name]));
+        var records = rows.Select(row => entity.Columns.Select(column => column.Name).Concat(entity.LookupFields)
+            .ToDictionary(field => field, field => row[field]));
         return ApiResponse.Success(records.ToArray(), metadata.Count > 0 ? metadata : null);
     }
 
@@ -119,7 +118,24 @@ public sealed partial class ProductService(ISqlDataAccess dataAccess, SqlObjectN
                 if (input.TryGetValue("ID", out var idValue) && idValue.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined) &&
                     !(idValue.ValueKind == JsonValueKind.Number && idValue.TryGetInt32(out var id) && id == 0))
                     throw new ValidationException("Import only creates products; ID must be omitted or zero.");
-                var saved = await SaveAsync(ImportAuditStamp.WithCreateDate(row), user, cancellationToken);
+                if (!input.TryGetValue("ProductTypeCode", out var typeCodeValue) || typeCodeValue.ValueKind != JsonValueKind.String ||
+                    string.IsNullOrWhiteSpace(typeCodeValue.GetString()))
+                    throw new ValidationException("ProductTypeCode is required.");
+                var typeCode = typeCodeValue.GetString()!.Trim();
+                if (typeCode.Length > 20)
+                    throw new ValidationException("ProductTypeCode must not exceed 20 characters.");
+                var productTypes = await dataAccess.SelectAsync($"""
+                    SELECT [ID] FROM {TypeTable}
+                    WHERE [ProductTypeCode] = @ProductTypeCode AND [DataStatus] = 'A';
+                    """, [new SqlParameter("@ProductTypeCode", SqlDbType.NVarChar, 20) { Value = typeCode }], cancellationToken);
+                if (productTypes.Rows.Count == 0)
+                    throw new ValidationException($"ไม่พบ ProductTypeCode '{typeCode}' ที่มีสถานะ A");
+                if (productTypes.Rows.Count > 1)
+                    throw new ValidationException($"พบ ProductTypeCode '{typeCode}' ที่มีสถานะ A มากกว่าหนึ่งรายการ");
+                input["ProductTypeID"] = JsonSerializer.SerializeToElement(productTypes.Rows[0].Field<int>("ID"));
+                // ProductTypeName is optional import metadata; resolve the reference only by code.
+                input.Remove("ProductTypeName");
+                var saved = await SaveAsync(ImportAuditStamp.WithCreateDate(JsonSerializer.SerializeToElement(input)), user, cancellationToken);
                 results.Add(new(excelRow, code, true, Convert.ToInt32(saved["ID"]), "สำเร็จ"));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -276,7 +292,7 @@ public sealed partial class ProductService(ISqlDataAccess dataAccess, SqlObjectN
         public string SearchFrom(string prefix)
         {
             var table = Table(prefix);
-            return $"FROM (SELECT e.*, p.[ProductTypeName] FROM {table} e LEFT JOIN {prefix}.[tsssProductType] p ON p.[ID]=e.[ProductTypeID]) records";
+            return $"FROM (SELECT e.*, p.[ProductTypeCode], p.[ProductTypeName] FROM {table} e LEFT JOIN {prefix}.[tsssProductType] p ON p.[ID]=e.[ProductTypeID]) records";
         }
     }
 }

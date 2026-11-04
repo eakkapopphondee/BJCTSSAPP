@@ -42,6 +42,7 @@
     "วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด": "The start date must not be after the end date",
     "หน้ารายงาน": "Report pages",
     "เปิดใช้งาน": "Active",
+    "ใช้ Default กรณีเป็น TBR": "Use as Default for TBR",
     "แสดงในบัตรชั่ง": "Show in Card",
     "แสดงในหน้าจอชั่ง": "Show in Program",
     "กำหนดเป็นลูกค้า Default": "Set as Default Customer",

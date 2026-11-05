@@ -26,6 +26,6 @@ public sealed partial class ProductService
                 values["UnitPrice"] = 0;
                 values["StdWeight"] = 0;
                 values["TBRDefaultFlag"] = "N";
-                return await SaveAsync(JsonSerializer.SerializeToElement(values), null, ct);
+                return await SaveAsync(JsonSerializer.SerializeToElement(values), null, ct, syncByCode: true);
             }, token);
 }

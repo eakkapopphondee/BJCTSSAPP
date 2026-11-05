@@ -141,7 +141,10 @@ public sealed partial class CustomerService(ISqlDataAccess dataAccess, SqlObject
         return new(results.Count, results.Count(row => row.Success), results.Count(row => !row.Success), results);
     }
 
-    public async Task<Dictionary<string, object?>> SaveAsync(JsonElement body, ClaimsPrincipal? webUser, CancellationToken cancellationToken)
+    public Task<Dictionary<string, object?>> SaveAsync(JsonElement body, ClaimsPrincipal? webUser, CancellationToken cancellationToken) =>
+        SaveAsync(body, webUser, cancellationToken, syncByCode: false);
+
+    private async Task<Dictionary<string, object?>> SaveAsync(JsonElement body, ClaimsPrincipal? webUser, CancellationToken cancellationToken, bool syncByCode)
     {
         var entity = Entity;
         var input = InputValidation.ReadObject(body);
@@ -188,10 +191,22 @@ public sealed partial class CustomerService(ISqlDataAccess dataAccess, SqlObject
             IF EXISTS (SELECT 1 FROM {table} WITH (UPDLOCK, HOLDLOCK) WHERE [{field}]=@{field} AND [DataStatus]='A' AND [ID]<>@ID)
                 THROW 51001, '{entity.Name}: duplicate active {field}', 1;
             """));
+        // Resolve the sync key inside the write transaction, including cancelled records.
+        var syncLookup = syncByCode ? $"""
+            IF (SELECT COUNT(*) FROM {table} WITH (UPDLOCK, HOLDLOCK) WHERE [CustomerCode]=@CustomerCode) > 1
+                THROW 51001, 'Customer: multiple records match sync code', 1;
+            SELECT @ID=[ID] FROM {table} WITH (UPDLOCK, HOLDLOCK) WHERE [CustomerCode]=@CustomerCode;
+            IF @ID > 0
+            BEGIN
+                SET @UpdateUserID=@CreateUserID;
+                SET @UpdateUserDate=@CreateUserDate;
+            END;
+            """ : "";
         var sql = $"""
             SET XACT_ABORT ON; SET NOCOUNT ON;
             BEGIN TRY
                 BEGIN TRANSACTION;
+                {syncLookup}
                 SELECT TOP (0) {entity.ColumnList.Replace("[ID]", "[ID] + 0 AS [ID]")} INTO #SavedSetup FROM {table};
                 IF @ID > 0 AND NOT EXISTS (SELECT 1 FROM {table} WITH (UPDLOCK, HOLDLOCK) WHERE [ID]=@ID)
                     THROW 51004, 'Record ID was not found', 1;

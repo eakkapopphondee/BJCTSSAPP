@@ -11,6 +11,6 @@ public sealed partial class CustomerService
             {
                 values["CustomerCode"] = values["SAPCode"];
                 values["CustomerName"] = values["SAPDesc"];
-                return await SaveAsync(JsonSerializer.SerializeToElement(values), null, ct);
+                return await SaveAsync(JsonSerializer.SerializeToElement(values), null, ct, syncByCode: true);
             }, token);
 }

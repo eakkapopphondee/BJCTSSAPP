@@ -11,6 +11,6 @@ public sealed partial class ProductTypeService
             {
                 values["ProductTypeCode"] = values["SAPCode"];
                 values["ProductTypeName"] = values["SAPDesc"];
-                return await SaveAsync(JsonSerializer.SerializeToElement(values), null, ct);
+                return await SaveAsync(JsonSerializer.SerializeToElement(values), null, ct, syncByCode: true);
             }, token);
 }
